@@ -30,7 +30,7 @@ public class SocketClient
                 {
                     float[] totalRNET = new float[100];
                     float[] totalSNET = new float[100];
-                    /////////////////////////////////////////////////////////////////////////////harchand saniye check konam bad befrestam?
+                    //////////////////////////////////////////harchand saniye check konam bad befrestam?
                     sampleperminute = 10;
                     sampleperminutecopy = sampleperminute;
                     cputotal = 0;
