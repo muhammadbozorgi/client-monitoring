@@ -6717,11 +6717,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Mohammad\\source\\repos\\server\\client\\client.csproj",
+      "projectUniqueName": "C:\\Users\\Mohammad\\source\\repos\\server\\first-client\\client\\client.csproj",
       "projectName": "client",
-      "projectPath": "C:\\Users\\Mohammad\\source\\repos\\server\\client\\client.csproj",
+      "projectPath": "C:\\Users\\Mohammad\\source\\repos\\server\\first-client\\client\\client.csproj",
       "packagesPath": "C:\\Users\\Mohammad\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Mohammad\\source\\repos\\server\\client\\obj\\",
+      "outputPath": "C:\\Users\\Mohammad\\source\\repos\\server\\first-client\\client\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Mohammad\\AppData\\Roaming\\NuGet\\NuGet.Config",
