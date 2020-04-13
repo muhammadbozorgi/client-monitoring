@@ -123,11 +123,15 @@ public class SocketClient
 
     public static int Main(String[] args)
     {
+        Console.WriteLine("please enter database ip:");
+        string databaseip = Console.ReadLine();
+        Console.WriteLine("please enter database port:");
+        string databaseport = Console.ReadLine();
         Console.WriteLine("please enter server ip:");
         string serverip = Console.ReadLine();
         Console.WriteLine("please enter server port:");
         string port = Console.ReadLine();
-        Thread t = new Thread(() => clientinfosender(serverip,port));
+        Thread t = new Thread(() => clientinfosender(databaseip, databaseport));
         t.Start();
         // new Thread(clientinfosender("kjlk","hjk")).Start();
         while (true)
