@@ -95,7 +95,7 @@ public class SocketClient
                     if (error || cputotal > 1 || ramtotal < 2000)
                     {
                         //connect to mongo
-                        var dbClient = new MongoClient("mongodb://"+ip+":"+port);
+                        var dbClient = new MongoClient("mongodb://" + ip + ":" + port);
                         ////create collection
                         IMongoDatabase university = dbClient.GetDatabase("university");
                         ////creat Mac object
@@ -123,6 +123,7 @@ public class SocketClient
 
     public static int Main(String[] args)
     {
+
         Console.WriteLine("please enter database ip:");
         string databaseip = Console.ReadLine();
         Console.WriteLine("please enter database port:");
@@ -131,25 +132,47 @@ public class SocketClient
         string serverip = Console.ReadLine();
         Console.WriteLine("please enter server port:");
         string port = Console.ReadLine();
-        Thread t = new Thread(() => clientinfosender(databaseip, databaseport));
-        t.Start();
-        // new Thread(clientinfosender("kjlk","hjk")).Start();
+        int PORT_NO = Convert.ToInt32(port);
+        string SERVER_IP = serverip;
+        //---listen at the specified IP and port no.---
+        IPAddress localAdd = IPAddress.Parse(SERVER_IP);
+        TcpListener listener = new TcpListener(localAdd, PORT_NO);
+        Console.WriteLine("Listening...");
         while (true)
         {
-             int PORT_NO = Convert.ToInt32(port);
-             string SERVER_IP = serverip;
-            //---listen at the specified IP and port no.---
-            IPAddress localAdd = IPAddress.Parse(SERVER_IP);
-            TcpListener listener = new TcpListener(localAdd, PORT_NO);
-            Console.WriteLine("Listening...");
-            listener.Start();
+            try
+            {
+                listener.Start();
+                break;
+            }
+        catch
+            {
+                Console.WriteLine( "u enter wrong ip or port");
+                Console.WriteLine("please enter database ip:");
+                 databaseip = Console.ReadLine();
+                Console.WriteLine("please enter database port:");
+                 databaseport = Console.ReadLine();
+                Console.WriteLine("please enter server ip:");
+                 serverip = Console.ReadLine();
+                Console.WriteLine("please enter server port:");
+                 port = Console.ReadLine();
+                 PORT_NO = Convert.ToInt32(port);
+                 SERVER_IP = serverip;
+                //---listen at the specified IP and port no.---
+                 localAdd = IPAddress.Parse(SERVER_IP);
+                 listener = new TcpListener(localAdd, PORT_NO);
+                Console.WriteLine("Listening...");
+            }
+        }
+        //---incoming client connected---
+        TcpClient client = listener.AcceptTcpClient();
 
-            //---incoming client connected---
-            TcpClient client = listener.AcceptTcpClient();
-
-            //---get the incoming data through a network stream---
-            NetworkStream nwStream = client.GetStream();
-
+        //---get the incoming data through a network stream---
+        NetworkStream nwStream = client.GetStream();
+        Thread t = new Thread(() => clientinfosender(databaseip, databaseport));
+        t.Start();
+        while (true)
+        {
             while (true)
             {
                 try
@@ -207,7 +230,7 @@ public class SocketClient
 
             }
         }
-    }
+        }
 }
 
 
