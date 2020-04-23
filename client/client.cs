@@ -12,6 +12,7 @@ using MongoDB.Driver;
 
 public class SocketClient
 {
+    
     public static void clientinfosender(string ip, string port)
     {
         while (true)
@@ -26,7 +27,7 @@ public class SocketClient
                 int cputotal;
                 float ramtotal;
                 int sampleperminutecopy;
-                while (1 == 1)
+                while (true)
                 {
                     float[] totalRNET = new float[100];
                     float[] totalSNET = new float[100];
@@ -108,109 +109,35 @@ public class SocketClient
                         Console.WriteLine("good");
                     }
                 }
-
             }
             catch (Exception ex)
             {
                 Console.WriteLine("An error occured in get data and sent to database: " + ex.GetType().ToString());
                 break;
             }
-
         }
-
-
     }
-
     public static void Main(String[] args)
     {
+        Console.WriteLine("please enter database ip:");
+        string databaseip = "127.0.0.1";
+        //Console.ReadLine();
+        Console.WriteLine("please enter database port:");
+        string databaseport = "50000";
+        //Console.ReadLine();
+        Thread t = new Thread(() => clientinfosender(databaseip, databaseport));
+        t.Start();
         while (true)
         {
+           
             try
             {
-                Console.WriteLine("please enter database ip:");
-                string databaseip = Console.ReadLine();
-                Console.WriteLine("please enter database port:");
-                string databaseport = Console.ReadLine();
-                Console.WriteLine("please enter server ip:");
-                string serverip = Console.ReadLine();
-                Console.WriteLine("please enter server port:");
-                string port = Console.ReadLine();
-                int PORT_NO = Convert.ToInt32(port);
-                string SERVER_IP = serverip;
-                //---listen at the specified IP and port no.---
-                IPAddress localAdd = IPAddress.Parse(SERVER_IP);
-                TcpListener listener = new TcpListener(localAdd, PORT_NO);
-                Console.WriteLine("Listening...");
-                listener.Start();
-                //---incoming client connected---
-                TcpClient client = listener.AcceptTcpClient();
-                //---get the incoming data through a network stream---
-                NetworkStream nwStream = client.GetStream();
-                Thread t = new Thread(() => clientinfosender(databaseip, databaseport));
-                t.Start();
-                while (true)
-                {
-                    while (true)
-                    {
-                        try
-                        {
-                            byte[] bytesToRead = new byte[client.ReceiveBufferSize];
-                            int bytesRead = nwStream.Read(bytesToRead, 0, client.ReceiveBufferSize);
-                            Console.WriteLine("Received : " + Encoding.ASCII.GetString(bytesToRead, 0, bytesRead));
-                            string command = Encoding.ASCII.GetString(bytesToRead, 0, bytesRead);
-                            Console.WriteLine(command);
-                            // Console.ReadLine();
-                            if (command == "exit") // quit and close socket
-                            {
-                                string exit = "good bye";
-                                byte[] exitbytes = ASCIIEncoding.ASCII.GetBytes(exit);
-                                nwStream.Write(exitbytes, 0, exitbytes.Length);
-                                listener.Stop();
-                                break;
-                            }
-                            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                            {
-                                // execute command
-                                Process p = new Process();
-                                p.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-                                p.StartInfo.FileName = "powershell.exe";
-                                p.StartInfo.Arguments = "/C " + command;
-                                p.StartInfo.RedirectStandardOutput = true;
-                                p.StartInfo.RedirectStandardError = true;
-                                p.StartInfo.UseShellExecute = false;
-                                p.StartInfo.CreateNoWindow = true;
-                                p.StartInfo.Verb = "runas";
-                                p.Start();
-
-                                string output = p.StandardOutput.ReadToEnd();
-                                string error = p.StandardError.ReadToEnd();
-
-                                // sending command output
-                                byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes(output);
-                                byte[] errorbuf = ASCIIEncoding.ASCII.GetBytes(error);
-                                nwStream.Write(outputbuf, 0, outputbuf.Length);
-                                nwStream.Write(errorbuf, 0, errorbuf.Length);
-                                p.Close();
-                            }
-                            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                            {
-
-                            }
-
-                        }
-                        catch
-                        {
-                            listener.Stop();
-                            break;
-                        }
-
-
-                    }
-                }
+                ProcessAsyncStreamSamples.SortOutputRedirection.SortInputListText();
             }
             catch (Exception ex)
             {
                 Console.WriteLine("An error occured in listenning to server: " + ex);
+
             }
         }
 

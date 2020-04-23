@@ -23,6 +23,7 @@ public class SocketListener
                     //---create a TCPClient object at the IP and port no.---
                     TcpClient client = new TcpClient(SERVER_IP, PORT_NO);
                     NetworkStream nwStream = client.GetStream();
+                    //---write back the text to the client---
                     while (true)
                     {
                         //---write back the text to the client---
