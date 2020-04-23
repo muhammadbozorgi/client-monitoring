@@ -13,14 +13,9 @@ namespace ProcessAsyncStreamSamples
     {
         // Define static variables shared by class methods.
         private static StringBuilder sortOutput = null;
-        public static void SortInputListText()
+        public static void SortInputListText(string serverip , string port)
         {
-            Console.WriteLine("please enter server ip:");
-            string serverip = "127.0.0.1";
-            // Console.ReadLine();
-            Console.WriteLine("please enter server port:");
-            string port = "5000";
-            //Console.ReadLine();
+            
             int PORT_NO = Convert.ToInt32(port);
             string SERVER_IP = serverip;
             //---listen at the specified IP and port no.---

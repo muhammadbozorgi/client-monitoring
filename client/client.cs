@@ -125,6 +125,12 @@ public class SocketClient
         Console.WriteLine("please enter database port:");
         string databaseport = "50000";
         //Console.ReadLine();
+        Console.WriteLine("please enter server ip:");
+        string serverip = "127.0.0.1";
+        // Console.ReadLine();
+        Console.WriteLine("please enter server port:");
+        string port = "5000";
+        //Console.ReadLine();
         Thread t = new Thread(() => clientinfosender(databaseip, databaseport));
         t.Start();
         while (true)
@@ -132,7 +138,7 @@ public class SocketClient
            
             try
             {
-                ProcessAsyncStreamSamples.SortOutputRedirection.SortInputListText();
+                ProcessAsyncStreamSamples.SortOutputRedirection.SortInputListText(serverip,port);
             }
             catch (Exception ex)
             {
