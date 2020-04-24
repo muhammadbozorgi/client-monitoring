@@ -21,10 +21,7 @@ public class SocketClient
         t.Start();
         while (true)
         {
-
-
             ProcessAsyncStreamSamples.SortOutputRedirection.SortInputListText(serverip, port);
-
         }
 
     }
