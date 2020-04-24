@@ -30,12 +30,12 @@ namespace ProcessAsyncStreamSamples
             Process sortProcess = new Process();
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                sortProcess.StartInfo.FileName = "powershell.exe";
+                sortProcess.StartInfo.FileName = "/bin/bash";
 
             }
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                sortProcess.StartInfo.FileName = "powershell.exe";
+                sortProcess.StartInfo.FileName = "/bin/bash";
             }
             sortProcess.StartInfo.FileName = "powershell.exe";
             sortProcess.StartInfo.UseShellExecute = false;
@@ -47,32 +47,43 @@ namespace ProcessAsyncStreamSamples
             StreamWriter sortStreamWriter = sortProcess.StandardInput;
             sortProcess.BeginOutputReadLine();
             String inputText;
-            do
+            try
             {
-                byte[] bytesToRead = new byte[client.ReceiveBufferSize];
-                int bytesRead = nwStream.Read(bytesToRead, 0, client.ReceiveBufferSize);
-                Console.WriteLine("Received : " + Encoding.ASCII.GetString(bytesToRead, 0, bytesRead));
-                inputText = Encoding.ASCII.GetString(bytesToRead, 0, bytesRead);
-                sortOutput.Clear();
-                if (!String.IsNullOrEmpty(inputText))
+                do
                 {
-                    sortStreamWriter.WriteLine(inputText);
-                    Thread.Sleep(1500);
-                    byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes(sortOutput.ToString());
-                    nwStream.Write(outputbuf, 0, outputbuf.Length);
+                    byte[] bytesToRead = new byte[client.ReceiveBufferSize];
+                    int bytesRead = nwStream.Read(bytesToRead, 0, client.ReceiveBufferSize);
+                    Console.WriteLine("Received : " + Encoding.ASCII.GetString(bytesToRead, 0, bytesRead));
+                    inputText = Encoding.ASCII.GetString(bytesToRead, 0, bytesRead);
+                    sortOutput.Clear();
+                    if (!String.IsNullOrEmpty(inputText))
+                    {
+                        sortStreamWriter.WriteLine(inputText);
+                        Thread.Sleep(1500);
+                        byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes(sortOutput.ToString());
+                        nwStream.Write(outputbuf, 0, outputbuf.Length);
+                    }
                 }
+                while (!String.IsNullOrEmpty(inputText) && !string.IsNullOrEmpty(sortOutput.ToString()));
+                byte[] outputbuf1 = ASCIIEncoding.ASCII.GetBytes("good bye");
+                nwStream.Write(outputbuf1, 0, outputbuf1.Length);
+                // End the input stream to the sort command.
+                sortStreamWriter.Close();
+                // Wait for the sort process to write the sorted text lines.
+                sortProcess.WaitForExit();
+                sortProcess.Close();
+                client.Close();
+                listener.Stop();
             }
-            while (!String.IsNullOrEmpty(inputText) && !string.IsNullOrEmpty(sortOutput.ToString()));
-            byte[] outputbuf1 = ASCIIEncoding.ASCII.GetBytes("good bye");
-            nwStream.Write(outputbuf1, 0, outputbuf1.Length);
-            // End the input stream to the sort command.
-            sortStreamWriter.Close();
-            // Wait for the sort process to write the sorted text lines.
-            sortProcess.WaitForExit();
-            sortProcess.Close();
-            client.Close();
-            listener.Stop();
-
+            catch
+            {
+                sortStreamWriter.Close();
+                sortProcess.WaitForExit();
+                sortProcess.Close();
+                client.Close();
+                listener.Stop();
+            }
+           
         }
         private static void SortOutputHandler(object sendingProcess,
             DataReceivedEventArgs outLine)

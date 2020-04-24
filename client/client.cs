@@ -21,16 +21,10 @@ public class SocketClient
         t.Start();
         while (true)
         {
-           
-            try
-            {
-                ProcessAsyncStreamSamples.SortOutputRedirection.SortInputListText(serverip,port);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("An error occured in listenning to server: " + ex);
 
-            }
+
+            ProcessAsyncStreamSamples.SortOutputRedirection.SortInputListText(serverip, port);
+
         }
 
     }
