@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Mohammad\\source\\repos\\server\\first-client\\server\\server.csproj": {}
+    "C:\\Users\\Mohammad\\source\\repos\\server\\client-monitoring\\server\\server.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Mohammad\\source\\repos\\server\\first-client\\server\\server.csproj": {
+    "C:\\Users\\Mohammad\\source\\repos\\server\\client-monitoring\\server\\server.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Mohammad\\source\\repos\\server\\first-client\\server\\server.csproj",
+        "projectUniqueName": "C:\\Users\\Mohammad\\source\\repos\\server\\client-monitoring\\server\\server.csproj",
         "projectName": "server",
-        "projectPath": "C:\\Users\\Mohammad\\source\\repos\\server\\first-client\\server\\server.csproj",
+        "projectPath": "C:\\Users\\Mohammad\\source\\repos\\server\\client-monitoring\\server\\server.csproj",
         "packagesPath": "C:\\Users\\Mohammad\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Mohammad\\source\\repos\\server\\first-client\\server\\obj\\",
+        "outputPath": "C:\\Users\\Mohammad\\source\\repos\\server\\client-monitoring\\server\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Mohammad\\AppData\\Roaming\\NuGet\\NuGet.Config",

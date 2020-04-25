@@ -9,7 +9,7 @@ public class SocketClient
         string databaseip = "127.0.0.1";
         //Console.ReadLine();
         Console.WriteLine("please enter database port:");
-        string databaseport = "50000";
+        string databaseport = "27017";
         //Console.ReadLine();
         Console.WriteLine("please enter server ip:");
         string serverip = "127.0.0.1";
