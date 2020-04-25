@@ -30,14 +30,13 @@ namespace ProcessAsyncStreamSamples
             Process sortProcess = new Process();
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                sortProcess.StartInfo.FileName = "/bin/bash";
+                sortProcess.StartInfo.FileName = "powershell.exe";
 
             }
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 sortProcess.StartInfo.FileName = "/bin/bash";
             }
-            sortProcess.StartInfo.FileName = "powershell.exe";
             sortProcess.StartInfo.UseShellExecute = false;
             sortProcess.StartInfo.RedirectStandardOutput = true;
             sortOutput = new StringBuilder();
@@ -55,6 +54,17 @@ namespace ProcessAsyncStreamSamples
                     int bytesRead = nwStream.Read(bytesToRead, 0, client.ReceiveBufferSize);
                     Console.WriteLine("Received : " + Encoding.ASCII.GetString(bytesToRead, 0, bytesRead));
                     inputText = Encoding.ASCII.GetString(bytesToRead, 0, bytesRead);
+                    if (inputText == "mykill" || bytesRead == 0) 
+                    {
+                        byte[] outputbuf2 = ASCIIEncoding.ASCII.GetBytes("good bye");
+                        nwStream.Write(outputbuf2, 0, outputbuf2.Length);
+                        sortStreamWriter.Close();
+                        sortProcess.WaitForExit();
+                        sortProcess.Close();
+                        client.Close();
+                        listener.Stop();
+                        break;
+                    }
                     sortOutput.Clear();
                     if (!String.IsNullOrEmpty(inputText))
                     {
@@ -63,17 +73,9 @@ namespace ProcessAsyncStreamSamples
                         byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes(sortOutput.ToString());
                         nwStream.Write(outputbuf, 0, outputbuf.Length);
                     }
-                }
-                while (!String.IsNullOrEmpty(inputText) && !string.IsNullOrEmpty(sortOutput.ToString()));
-                byte[] outputbuf1 = ASCIIEncoding.ASCII.GetBytes("good bye");
-                nwStream.Write(outputbuf1, 0, outputbuf1.Length);
-                // End the input stream to the sort command.
-                sortStreamWriter.Close();
-                // Wait for the sort process to write the sorted text lines.
-                sortProcess.WaitForExit();
-                sortProcess.Close();
-                client.Close();
-                listener.Stop();
+                   
+                } while (true);
+
             }
             catch
             {

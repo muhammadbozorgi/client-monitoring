@@ -11,6 +11,7 @@ public class SocketListener
 
     public static int Main(String[] args)
     {
+        string dataReceived = string.Empty;
         while (true)
         {
             while (true)
@@ -29,6 +30,10 @@ public class SocketListener
                         //---write back the text to the client---
                         Console.WriteLine("enter your command: ");
                         string textToSend = Console.ReadLine();
+                        if (string.IsNullOrEmpty(textToSend))
+                        {
+                            textToSend = " ";
+                        }
                         byte[] bytesToSend = ASCIIEncoding.ASCII.GetBytes(textToSend);
                         //---send the text---
                         Console.WriteLine("Sending : " + textToSend);
@@ -37,16 +42,17 @@ public class SocketListener
                         //---read incoming stream---
                         int bytesRead = nwStream.Read(buffer, 0, client.ReceiveBufferSize);
                         //---convert the data received into a string---
-                        string dataReceived = Encoding.ASCII.GetString(buffer, 0, bytesRead);
+                        dataReceived = Encoding.ASCII.GetString(buffer, 0, bytesRead);
                         Console.WriteLine("Received : " + dataReceived);
                         if (dataReceived == "good bye")
                         {
                             client.Close();
                             break;
                         }
+
                     }
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Console.WriteLine(e.GetType().ToString());
                     break;
