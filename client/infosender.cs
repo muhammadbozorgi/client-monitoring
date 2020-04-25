@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Net.NetworkInformation;
 using System.Text;
 
@@ -18,7 +19,7 @@ namespace client
 
                 try
                 {
-                    string firstMacAddress = string.Empty;
+                    string firstipAddress = string.Empty;
                     int sampleperminute;
                     bool error;
                     float[] driveinfo = new float[100];
@@ -54,7 +55,7 @@ namespace client
                             PerformanceCounter ramCounter = new PerformanceCounter("Memory", "Available MBytes");
                             cpuCounter.NextValue();
                             ramCounter.NextValue();
-                            System.Threading.Thread.Sleep(1000);
+                            System.Threading.Thread.Sleep(1000); 
                             cputotal += (int)cpuCounter.NextValue();
                             ramtotal += ramCounter.NextValue();
                             sampleperminute--;
@@ -64,9 +65,22 @@ namespace client
                         {
                             totalRNET[b] += (float)(ni.GetIPv4Statistics().BytesReceived) / (1024 * 1024);
                             totalSNET[b] += (float)(ni.GetIPv4Statistics().BytesSent) / (1024 * 1024);
-                            if (totalRNET[b] != 0 || totalSNET[b] != 0 && ni.NetworkInterfaceType != NetworkInterfaceType.Loopback)
+                            if (totalRNET[b] != 0 || totalSNET[b] != 0 && ni.OperationalStatus == OperationalStatus.Up) 
                             {
-                                firstMacAddress = ni.GetPhysicalAddress().ToString();
+                                if(ni.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 || ni.NetworkInterfaceType == NetworkInterfaceType.Ethernet &&
+                                    ni.NetworkInterfaceType != NetworkInterfaceType.Loopback && ni.NetworkInterfaceType != NetworkInterfaceType.Tunnel
+                                    && ni.Name.StartsWith("vEthernet") == false && ni.Description.Contains("Hyper-v") == false)
+                                {
+                                    foreach (UnicastIPAddressInformation ip1 in ni.GetIPProperties().UnicastAddresses)
+                                    {
+                                        if (ip1.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                                        {
+                                            firstipAddress = ip1.Address.ToString();
+                                            doc.Add(new BsonElement("MAC", ni.GetPhysicalAddress().ToString()));
+                                        }
+                                    }
+                                }
+
                                 doc.Add(new BsonElement("Interface" + b, ni.Description));
                                 doc.Add(new BsonElement("MBytes Sent for Interface " + b, totalSNET[b]));
                                 doc.Add(new BsonElement("MBytes Rec for Interface" + b, totalRNET[b]));
@@ -98,9 +112,9 @@ namespace client
                             ////create collection
                             IMongoDatabase university = dbClient.GetDatabase("university");
                             ////creat Mac object
-                            var MAC = university.GetCollection<BsonDocument>(firstMacAddress);
+                            var IP = university.GetCollection<BsonDocument>(firstipAddress);
                             //create bson
-                            MAC.InsertOne(doc);
+                            IP.InsertOne(doc);
                         }
                         else
                         {
@@ -110,8 +124,8 @@ namespace client
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("An error occured in get data and sent to database: " + ex.GetType().ToString());
-                    break;
+                    Console.WriteLine("An error occured in get data and sent to database: " + ex.GetType().ToString()+ ex);
+                    
                 }
             }
         }
