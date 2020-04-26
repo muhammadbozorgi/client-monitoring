@@ -13,14 +13,12 @@ namespace ProcessAsyncStreamSamples
     {
         // Define static variables shared by class methods.
         private static StringBuilder sortOutput = null;
-        public static void SortInputListText(string serverip , string port)
-        {
-            
-            int PORT_NO = Convert.ToInt32(port);
+        public static void SortInputListText(string serverip , int port)
+        {            
             string SERVER_IP = serverip;
             //---listen at the specified IP and port no.---
             IPAddress localAdd = IPAddress.Parse(SERVER_IP);
-            TcpListener listener = new TcpListener(localAdd, PORT_NO);
+            TcpListener listener = new TcpListener(localAdd, port);
             Console.WriteLine("Listening...");
             listener.Start();
             //---incoming client connected---
