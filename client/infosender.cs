@@ -76,7 +76,7 @@ namespace client
                                         if (ip1.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                                         {
                                             firstipAddress = ip1.Address.ToString();
-                                            doc.Add(new BsonElement(firstipAddress+"MAC", ni.GetPhysicalAddress().ToString()));
+                                            doc.Add(new BsonElement(firstipAddress+" MAC ", ni.GetPhysicalAddress().ToString()));
                                         }
                                     }
                                 }
