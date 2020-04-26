@@ -13,9 +13,8 @@ namespace ProcessAsyncStreamSamples
     {
         // Define static variables shared by class methods.
         private static StringBuilder sortOutput = null;
-        public static void SortInputListText(string serverip , int port)
+        public static void SortInputListText(string SERVER_IP, int port)
         {            
-            string SERVER_IP = serverip;
             //---listen at the specified IP and port no.---
             IPAddress localAdd = IPAddress.Parse(SERVER_IP);
             TcpListener listener = new TcpListener(localAdd, port);
@@ -52,7 +51,7 @@ namespace ProcessAsyncStreamSamples
                     int bytesRead = nwStream.Read(bytesToRead, 0, client.ReceiveBufferSize);
                     Console.WriteLine("Received : " + Encoding.ASCII.GetString(bytesToRead, 0, bytesRead));
                     inputText = Encoding.ASCII.GetString(bytesToRead, 0, bytesRead);
-                    if (inputText == "mykill" || bytesRead == 0) 
+                    if (inputText == "mykill") 
                     {
                         byte[] outputbuf2 = ASCIIEncoding.ASCII.GetBytes("good bye");
                         nwStream.Write(outputbuf2, 0, outputbuf2.Length);

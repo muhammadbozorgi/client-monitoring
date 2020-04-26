@@ -19,7 +19,8 @@ namespace client
 
                 try
                 {
-                    string firstipAddress = string.Empty;
+                    string firstipAddress ="cant find ip";
+                    string macadd = "cant find mac";
                     int sampleperminute;
                     bool error;
                     float[] driveinfo = new float[100];
@@ -76,11 +77,10 @@ namespace client
                                         if (ip1.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                                         {
                                             firstipAddress = ip1.Address.ToString();
-                                            doc.Add(new BsonElement(firstipAddress+" MAC ", ni.GetPhysicalAddress().ToString()));
+                                            macadd = ni.GetPhysicalAddress().ToString();
                                         }
                                     }
                                 }
-
                                 doc.Add(new BsonElement("Interface" + b, ni.Description));
                                 doc.Add(new BsonElement("MBytes Sent for Interface " + b, totalSNET[b]));
                                 doc.Add(new BsonElement("MBytes Rec for Interface" + b, totalRNET[b]));
@@ -91,6 +91,7 @@ namespace client
                             }
                             b++;
                         }
+                        doc.Add(new BsonElement("MAC", macadd));
                         //GET DRIVETINFO
                         foreach (DriveInfo drive in DriveInfo.GetDrives())
                         {
@@ -115,6 +116,7 @@ namespace client
                             var IP = university.GetCollection<BsonDocument>(firstipAddress);
                             //create bson
                             IP.InsertOne(doc);
+                            Console.WriteLine("send data");
                         }
                         else
                         {
@@ -124,7 +126,7 @@ namespace client
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("An error occured in get data and sent to database: " + ex.GetType().ToString()+ ex);
+                    Console.WriteLine("An error occured in get data and sent to database: " + ex.GetType().ToString()+ex);
                     
                 }
             }
