@@ -12,7 +12,7 @@ public class SocketClient
         //Console.WriteLine("please enter database port:");
         string databaseport = "27017";
         //Console.ReadLine();
-        Console.WriteLine("please enter server ip:");
+        Console.WriteLine("please enter ip that you want get menager command :");
         string serverip = Console.ReadLine();
         Console.WriteLine("please enter server port:");
         string result = Console.ReadLine();

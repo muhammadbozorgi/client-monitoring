@@ -19,7 +19,7 @@ namespace client
 
                 try
                 {
-                    string firstipAddress ="cant find ip";
+                    string firstipAddress = "cant find ip";
                     string macadd = "cant find mac";
                     int sampleperminute;
                     bool error;
@@ -56,7 +56,7 @@ namespace client
                             PerformanceCounter ramCounter = new PerformanceCounter("Memory", "Available MBytes");
                             cpuCounter.NextValue();
                             ramCounter.NextValue();
-                            System.Threading.Thread.Sleep(1000); 
+                            System.Threading.Thread.Sleep(1000);
                             cputotal += (int)cpuCounter.NextValue();
                             ramtotal += ramCounter.NextValue();
                             sampleperminute--;
@@ -66,9 +66,9 @@ namespace client
                         {
                             totalRNET[b] += (float)(ni.GetIPv4Statistics().BytesReceived) / (1024 * 1024);
                             totalSNET[b] += (float)(ni.GetIPv4Statistics().BytesSent) / (1024 * 1024);
-                            if (totalRNET[b] != 0 || totalSNET[b] != 0 && ni.OperationalStatus == OperationalStatus.Up) 
+                            if (totalRNET[b] != 0 || totalSNET[b] != 0 && ni.OperationalStatus == OperationalStatus.Up)
                             {
-                                if(ni.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 || ni.NetworkInterfaceType == NetworkInterfaceType.Ethernet &&
+                                if (ni.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 || ni.NetworkInterfaceType == NetworkInterfaceType.Ethernet &&
                                     ni.NetworkInterfaceType != NetworkInterfaceType.Loopback && ni.NetworkInterfaceType != NetworkInterfaceType.Tunnel
                                     && ni.Name.StartsWith("vEthernet") == false && ni.Description.Contains("Hyper-v") == false)
                                 {
@@ -98,12 +98,13 @@ namespace client
                             try
                             {
                                 doc.Add(new BsonElement(drive.Name + "free space(GB): ", (drive.TotalFreeSpace) / 1e9));
+
+                                if (((drive.TotalFreeSpace) / 1e9) < 1)
+                                {
+                                    error = true;
+                                }
                             }
                             catch { }
-                            if (((drive.TotalFreeSpace) / 1e9) < 1)
-                            {
-                                error = true;
-                            }
                         }
                         cputotal = cputotal / sampleperminutecopy;
                         doc.Add(new BsonElement("total cpu usage: ", cputotal));
@@ -130,8 +131,8 @@ namespace client
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("An error occured in get data and sent to database: " + ex.GetType().ToString()+ex);
-                    
+                    Console.WriteLine("An error occured in get data and sent to database: " + ex.GetType().ToString() + ex);
+
                 }
             }
         }
