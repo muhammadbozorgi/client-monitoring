@@ -95,7 +95,11 @@ namespace client
                         //GET DRIVETINFO
                         foreach (DriveInfo drive in DriveInfo.GetDrives())
                         {
-                            doc.Add(new BsonElement(drive.Name + "free space(GB): ", (drive.TotalFreeSpace) / 1e9));
+                            try
+                            {
+                                doc.Add(new BsonElement(drive.Name + "free space(GB): ", (drive.TotalFreeSpace) / 1e9));
+                            }
+                            catch { }
                             if (((drive.TotalFreeSpace) / 1e9) < 1)
                             {
                                 error = true;
