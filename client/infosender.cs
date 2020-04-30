@@ -49,11 +49,67 @@ namespace client
                         }
                         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                         {
-
+                            var proc = new Process
+                            {
+                                StartInfo = new ProcessStartInfo
+                                {
+                                    FileName = "powershell.exe",
+                                    Arguments = "(Get-CimInstance -Class Win32_Processor).LoadPercentage",
+                                    UseShellExecute = false,
+                                    RedirectStandardOutput = true,
+                                    CreateNoWindow = true
+                                }
+                            };
+                            proc.Start();
+                            string output = proc.StandardOutput.ReadToEnd();
+                            cputotal = Convert.ToInt32(output);
+                            proc.Close();
+                            var proc1 = new Process
+                            {
+                                StartInfo = new ProcessStartInfo
+                                {
+                                    FileName = "powershell.exe",
+                                    Arguments = "Get-CIMInstance Win32_OperatingSystem | Select FreePhysicalMemory|%{$_.FreePhysicalMemory/1024}",
+                                    UseShellExecute = false,
+                                    RedirectStandardOutput = true,
+                                    CreateNoWindow = true
+                                }
+                            };
+                            proc1.Start();
+                            string output1 = proc1.StandardOutput.ReadToEnd();
+                            ramtotal = (int)Convert.ToDouble(output1);
+                            proc1.Close();
                         }
                         else
                         {
-                        
+                            var proc = new Process
+                            {
+                                StartInfo = new ProcessStartInfo
+                                {
+                                    FileName = "/bin/bash",
+                                    Arguments = "-c \" " + "grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage}'"+"\"",
+                                    UseShellExecute = false,
+                                    RedirectStandardOutput = true,
+                                    CreateNoWindow = true
+                                }
+                            };
+                            string output = proc.StandardOutput.ReadToEnd();
+                            cputotal = Convert.ToInt32(output);
+                            proc.Close();
+                            var proc1 = new Process
+                            {
+                                StartInfo = new ProcessStartInfo
+                                {
+                                    FileName = "/bin/bash",
+                                    Arguments = "-c \" " + "free | awk 'FNR == 3 {print$4/1024}'"+"\"",
+                                    UseShellExecute = false,
+                                    RedirectStandardOutput = true,
+                                    CreateNoWindow = true
+                                }
+                            };
+                            string output1 = proc.StandardOutput.ReadToEnd();
+                            ramtotal = Convert.ToInt32(output1);
+                            proc1.Close();
                         }
                         //NETWORK USAGE AGAIN FOR CALCULATE PER MIN
                         foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
