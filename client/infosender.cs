@@ -6,12 +6,24 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 
 namespace client
 {
     class infosender
     {
+        private static StringBuilder sortOutput = null;
+        private static void SortOutputHandler(object sendingProcess,
+          DataReceivedEventArgs outLine)
+        {
+            if (!String.IsNullOrEmpty(outLine.Data))
+            {
+                sortOutput.Append(Environment.NewLine +
+                    $"{outLine.Data}");
+            }
+        }
         public static void clientinfosender(string ip, string port)
         {
             while (true)
@@ -19,21 +31,38 @@ namespace client
 
                 try
                 {
+                    Process sortProcess = new Process();
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        sortProcess.StartInfo.FileName = "cmd.exe";
+                    }
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                    {
+                        sortProcess.StartInfo.FileName = "/bin/bash";
+                    }
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    {
+                        sortProcess.StartInfo.FileName = "/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal";
+                    }
+                    sortProcess.StartInfo.UseShellExecute = false;
+                    sortProcess.StartInfo.RedirectStandardOutput = true;
+                    sortOutput = new StringBuilder();
+                    sortProcess.OutputDataReceived += SortOutputHandler;
+                    sortProcess.StartInfo.RedirectStandardInput = true;
+                    sortProcess.Start();
+                    StreamWriter sortStreamWriter = sortProcess.StandardInput;
+                    sortProcess.BeginOutputReadLine();
                     string firstipAddress = "cant find ip";
                     string macadd = "cant find mac";
-                    int sampleperminute;
                     bool error;
                     float[] driveinfo = new float[100];
                     int cputotal;
                     float ramtotal;
-                    int sampleperminutecopy;
                     while (true)
                     {
                         float[] totalRNET = new float[100];
                         float[] totalSNET = new float[100];
                         //////////////////////////////////////////harchand saniye check konam bad befrestam?
-                        sampleperminute = 10;
-                        sampleperminutecopy = sampleperminute;
                         cputotal = 0;
                         ramtotal = 0;
                         error = false;
@@ -49,17 +78,28 @@ namespace client
 
                             i++;
                         }
-                        //CPU AND RAM AVERAGE
-                        while (sampleperminute != 0)
+                        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                         {
-                            PerformanceCounter cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
-                            PerformanceCounter ramCounter = new PerformanceCounter("Memory", "Available MBytes");
-                            cpuCounter.NextValue();
-                            ramCounter.NextValue();
-                            System.Threading.Thread.Sleep(1000);
-                            cputotal += (int)cpuCounter.NextValue();
-                            ramtotal += ramCounter.NextValue();
-                            sampleperminute--;
+                            sortOutput.Clear();
+                            sortStreamWriter.WriteLine("(Get-WmiObject Win32_Processor).LoadPercentage");
+                            sortOutput.Clear();
+                            Thread.Sleep(5000);
+                            Console.WriteLine(sortOutput);
+                            string a = sortOutput.ToString();
+                            Console.WriteLine(a);
+                            cputotal = Convert.ToInt32(a);
+                            sortStreamWriter.WriteLine("Get-WMIObject -class win32_ComputerSystem |  %{$_.TotalPhysicalMemory/(1024*1024)}");
+                            ramtotal = Convert.ToInt32(sortOutput);
+                            sortStreamWriter.WriteLine("Get-CIMInstance Win32_OperatingSystem | Select FreePhysicalMemory | %{$_.FreePhysicalMemory/1000}");
+                            ramtotal = (ramtotal-Convert.ToInt32(sortOutput))/ramtotal;
+                            Console.WriteLine(ramtotal);
+                        }
+                        else
+                        {
+                            sortStreamWriter.WriteLine("Get-WmiObject Win32_Processor | Select LoadPercentage | Format-List");
+                           // cputotal = sortOutput;
+                            sortStreamWriter.WriteLine("Get-WMIObject Win32_PhysicalMemory | Measure -Property capacity -Sum | %{$_.sum/1Mb}");
+                            //ramtotal = sortOutput;
                         }
                         //NETWORK USAGE AGAIN FOR CALCULATE PER MIN
                         foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
@@ -106,9 +146,7 @@ namespace client
                             }
                             catch { }
                         }
-                        cputotal = cputotal / sampleperminutecopy;
                         doc.Add(new BsonElement("total cpu usage: ", cputotal));
-                        ramtotal = ramtotal / sampleperminutecopy;
                         doc.Add(new BsonElement("total free ram(MB): ", ramtotal));
                         /////////////////////////////////////////////CHECK MY CONDITION FOR SEND DATA TO DATABASE OR NOT
                         if (error || cputotal > 1 || ramtotal < 2000)

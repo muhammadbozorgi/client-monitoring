@@ -42,9 +42,9 @@
               "target": "Package",
               "version": "[2.10.2, )"
             },
-            "System.Diagnostics.PerformanceCounter": {
+            "NServiceBus.Metrics.PerformanceCounters": {
               "target": "Package",
-              "version": "[4.7.0, )"
+              "version": "[4.0.0, )"
             },
             "System.Management": {
               "target": "Package",
