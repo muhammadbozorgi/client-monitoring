@@ -14,16 +14,6 @@ namespace client
 {
     class infosender
     {
-        private static StringBuilder sortOutput = null;
-        private static void SortOutputHandler(object sendingProcess,
-          DataReceivedEventArgs outLine)
-        {
-            if (!String.IsNullOrEmpty(outLine.Data))
-            {
-                sortOutput.Append(Environment.NewLine +
-                    $"{outLine.Data}");
-            }
-        }
         public static void clientinfosender(string ip, string port)
         {
             while (true)
@@ -31,27 +21,6 @@ namespace client
 
                 try
                 {
-                    Process sortProcess = new Process();
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    {
-                        sortProcess.StartInfo.FileName = "cmd.exe";
-                    }
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                    {
-                        sortProcess.StartInfo.FileName = "/bin/bash";
-                    }
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                    {
-                        sortProcess.StartInfo.FileName = "/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal";
-                    }
-                    sortProcess.StartInfo.UseShellExecute = false;
-                    sortProcess.StartInfo.RedirectStandardOutput = true;
-                    sortOutput = new StringBuilder();
-                    sortProcess.OutputDataReceived += SortOutputHandler;
-                    sortProcess.StartInfo.RedirectStandardInput = true;
-                    sortProcess.Start();
-                    StreamWriter sortStreamWriter = sortProcess.StandardInput;
-                    sortProcess.BeginOutputReadLine();
                     string firstipAddress = "cant find ip";
                     string macadd = "cant find mac";
                     bool error;
@@ -80,26 +49,11 @@ namespace client
                         }
                         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                         {
-                            sortOutput.Clear();
-                            sortStreamWriter.WriteLine("(Get-WmiObject Win32_Processor).LoadPercentage");
-                            sortOutput.Clear();
-                            Thread.Sleep(5000);
-                            Console.WriteLine(sortOutput);
-                            string a = sortOutput.ToString();
-                            Console.WriteLine(a);
-                            cputotal = Convert.ToInt32(a);
-                            sortStreamWriter.WriteLine("Get-WMIObject -class win32_ComputerSystem |  %{$_.TotalPhysicalMemory/(1024*1024)}");
-                            ramtotal = Convert.ToInt32(sortOutput);
-                            sortStreamWriter.WriteLine("Get-CIMInstance Win32_OperatingSystem | Select FreePhysicalMemory | %{$_.FreePhysicalMemory/1000}");
-                            ramtotal = (ramtotal-Convert.ToInt32(sortOutput))/ramtotal;
-                            Console.WriteLine(ramtotal);
+
                         }
                         else
                         {
-                            sortStreamWriter.WriteLine("Get-WmiObject Win32_Processor | Select LoadPercentage | Format-List");
-                           // cputotal = sortOutput;
-                            sortStreamWriter.WriteLine("Get-WMIObject Win32_PhysicalMemory | Measure -Property capacity -Sum | %{$_.sum/1Mb}");
-                            //ramtotal = sortOutput;
+                        
                         }
                         //NETWORK USAGE AGAIN FOR CALCULATE PER MIN
                         foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
