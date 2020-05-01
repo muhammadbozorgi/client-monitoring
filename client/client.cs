@@ -48,7 +48,7 @@ public class SocketClient
                 {
                     ProcessAsyncStreamSamples.SortOutputRedirection1.SortInputListText(serverip, port);
                 }
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
                     ProcessAsyncStreamSamples.SortOutputRedirection.SortInputListText(serverip, port);
                 }
