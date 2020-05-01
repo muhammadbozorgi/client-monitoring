@@ -28,7 +28,7 @@ public class SocketClient
             }
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                ProcessAsyncStreamSamples.SortOutputRedirection1.SortInputListText(serverip, port);
+                ProcessAsyncStreamSamples.SortOutputRedirection.SortInputListText(serverip, port);
             }
         }
 

@@ -56,7 +56,7 @@ namespace ProcessAsyncStreamSamples
                         byte[] outputbuf2 = ASCIIEncoding.ASCII.GetBytes("good bye");
                         nwStream.Write(outputbuf2, 0, outputbuf2.Length);
                         sortStreamWriter.Close();
-                        sortProcess.WaitForExit();
+                        sortProcess.Kill();
                         sortProcess.Close();
                         client.Close();
                         listener.Stop();
@@ -74,7 +74,7 @@ namespace ProcessAsyncStreamSamples
                         byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes("good bye");
                         nwStream.Write(outputbuf, 0, outputbuf.Length);
                         sortStreamWriter.Close();
-                        sortProcess.WaitForExit();
+                        sortProcess.Kill();
                         sortProcess.Close();
                         client.Close();
                         listener.Stop();
@@ -83,14 +83,12 @@ namespace ProcessAsyncStreamSamples
                     Thread.Sleep(1500);
                     if (!String.IsNullOrEmpty(sortOutput.ToString()))
                     {
-                        Console.WriteLine(sortOutput.ToString());
                         byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes(sortOutput.ToString());
                         nwStream.Write(outputbuf, 0, outputbuf.Length);
                     }
                     if (!String.IsNullOrEmpty(sortOutput1.ToString()))
                     {
                         Thread.Sleep(1500);
-                        Console.WriteLine(sortOutput1.ToString());
                         byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes(sortOutput1.ToString());
                         nwStream.Write(outputbuf, 0, outputbuf.Length);
                     }
@@ -99,7 +97,6 @@ namespace ProcessAsyncStreamSamples
                         byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes("ur command havent any output");
                         nwStream.Write(outputbuf, 0, outputbuf.Length);
                     }
-                    Console.WriteLine(sortOutput.ToString(), sortOutput1.ToString());
                 } while (true);
 
             }
