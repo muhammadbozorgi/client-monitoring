@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 public class SocketClient
@@ -21,7 +22,14 @@ public class SocketClient
         t.Start();
         while (true)
         {
-            ProcessAsyncStreamSamples.SortOutputRedirection.SortInputListText(serverip, port);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                ProcessAsyncStreamSamples.SortOutputRedirection1.SortInputListText(serverip, port);
+            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                ProcessAsyncStreamSamples.SortOutputRedirection1.SortInputListText(serverip, port);
+            }
         }
 
     }

@@ -62,7 +62,7 @@ namespace client
                             };
                             proc.Start();
                             string output = proc.StandardOutput.ReadToEnd();
-                            cputotal = Convert.ToInt32(output);
+                            cputotal =(int) Convert.ToDouble(output);
                             proc.Close();
                             var proc1 = new Process
                             {
@@ -93,8 +93,9 @@ namespace client
                                     CreateNoWindow = true
                                 }
                             };
+                            proc.Start();
                             string output = proc.StandardOutput.ReadToEnd();
-                            cputotal = Convert.ToInt32(output);
+                            cputotal = (int)Convert.ToDouble(output);
                             proc.Close();
                             var proc1 = new Process
                             {
@@ -107,8 +108,9 @@ namespace client
                                     CreateNoWindow = true
                                 }
                             };
-                            string output1 = proc.StandardOutput.ReadToEnd();
-                            ramtotal = Convert.ToInt32(output1);
+                            proc1.Start();
+                            string output1 = proc1.StandardOutput.ReadToEnd();
+                            ramtotal = (int)Convert.ToDouble(output1);
                             proc1.Close();
                         }
                         //NETWORK USAGE AGAIN FOR CALCULATE PER MIN
@@ -179,7 +181,7 @@ namespace client
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("An error occured in get data and sent to database: " + ex.GetType().ToString() + ex);
+                    Console.WriteLine("An error occured in get data and sent to database: " + ex.GetType().ToString() );
 
                 }
             }

