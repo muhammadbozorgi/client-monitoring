@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -6,29 +7,56 @@ public class SocketClient
 {
     public static void Main(String[] args)
     {
-
-
-        Console.WriteLine("please enter database ip:");
-        string databaseip = Console.ReadLine();
-        //Console.WriteLine("please enter database port:");
+        string databaseip;
         string databaseport = "27017";
-        //Console.ReadLine();
-        Console.WriteLine("please enter ip that you want get menager command :");
-        string serverip = Console.ReadLine();
-        Console.WriteLine("please enter server port:");
-        string result = Console.ReadLine();
-        int port = Int32.Parse(result);
+        string serverip;
+        string result;
+        int port;
+        while (true)
+        {
+            Console.WriteLine("please enter database ip:");
+            databaseip = Console.ReadLine();
+            Ping p1 = new Ping();
+            PingReply PR = p1.Send(databaseip);
+            Console.WriteLine("please enter ip that you want get menager command :");
+            serverip = Console.ReadLine();
+            Ping p2 = new Ping();
+            PingReply PR1 = p1.Send(serverip);
+            // check when the ping is not success
+            if (PR.Status.ToString().Equals("Success"))
+            {
+                Console.WriteLine("ping database is true");
+                if ((PR.Status.ToString().Equals("Success")))
+                {
+                    Console.WriteLine("ping server is true");
+                    Console.WriteLine("please enter server port:");
+                    result = Console.ReadLine();
+                    port = Int32.Parse(result);
+                    break;
+                }
+            }
+            Console.WriteLine("cant see database ip try again");
+        }
+
         Thread t = new Thread(() => client.infosender.clientinfosender(databaseip, databaseport));
         t.Start();
         while (true)
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            try
             {
-                ProcessAsyncStreamSamples.SortOutputRedirection1.SortInputListText(serverip, port);
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    ProcessAsyncStreamSamples.SortOutputRedirection1.SortInputListText(serverip, port);
+                }
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    ProcessAsyncStreamSamples.SortOutputRedirection.SortInputListText(serverip, port);
+                }
             }
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            catch (Exception ex)
             {
-                ProcessAsyncStreamSamples.SortOutputRedirection.SortInputListText(serverip, port);
+                Console.WriteLine("An error occured in get data and sent to database: " + ex.GetType().ToString());
+
             }
         }
 
