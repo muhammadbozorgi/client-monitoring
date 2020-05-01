@@ -44,7 +44,6 @@ namespace client
                         {
                             totalRNET[i] = -(float)(ni.GetIPv4Statistics().BytesReceived) / (1024 * 1024);
                             totalSNET[i] = -(float)(ni.GetIPv4Statistics().BytesSent) / (1024 * 1024);
-
                             i++;
                         }
                         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -161,7 +160,7 @@ namespace client
                         doc.Add(new BsonElement("total cpu usage: ", cputotal));
                         doc.Add(new BsonElement("total free ram(MB): ", ramtotal));
                         /////////////////////////////////////////////CHECK MY CONDITION FOR SEND DATA TO DATABASE OR NOT
-                        if (error || cputotal > 1 || ramtotal < 2000)
+                        if (error || cputotal > 20 || ramtotal < 2000)
                         {
                             //connect to mongo
                             var dbClient = new MongoClient("mongodb://" + ip + ":" + port);
