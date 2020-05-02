@@ -31,7 +31,6 @@ namespace client
                     {
                         float[] totalRNET = new float[100];
                         float[] totalSNET = new float[100];
-                        //////////////////////////////////////////harchand saniye check konam bad befrestam?
                         cputotal = 0;
                         ramtotal = 0;
                         error = false;
@@ -46,9 +45,14 @@ namespace client
                             totalSNET[i] = -(float)(ni.GetIPv4Statistics().BytesSent) / (1024 * 1024);
                             i++;
                         }
-                        cputotal = ramcpu.cpu();
-                        ramtotal = ramcpu.ram();
-                        Thread.Sleep(30000);
+                        for(int c =6; c!=0;c-- )
+                        {
+                            cputotal += ramcpu.cpu();
+                            ramtotal += ramcpu.ram();
+                            Thread.Sleep(10000);
+                        }
+                        cputotal = cputotal/6;
+                        ramtotal = ramtotal/6;
                         //NETWORK USAGE AGAIN FOR CALCULATE PER MIN
                         foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
                         {
@@ -111,7 +115,7 @@ namespace client
                         }
                         else
                         {
-                            Console.WriteLine("send to database",doc);
+                            Console.WriteLine("system is stable");
                         }
                     }
                 }

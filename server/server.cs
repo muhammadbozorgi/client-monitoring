@@ -4,8 +4,6 @@ using System.Net.Sockets;
 using System.Text;
 using System.Runtime.InteropServices;
 
-// Socket Listener acts as a server and listens to the incoming   
-// messages on the specified port and protocol.  
 public class SocketListener
 {
 

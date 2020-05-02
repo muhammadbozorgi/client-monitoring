@@ -75,6 +75,13 @@ namespace ProcessAsyncStreamSamples
                         byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes(sortOutput.ToString());
                         nwStream.Write(outputbuf, 0, outputbuf.Length);
                     }
+                    if (String.IsNullOrEmpty(sortOutput.ToString()))
+                    {
+                        sortStreamWriter.WriteLine(inputText);
+                        Thread.Sleep(1500);
+                        byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes("ur command havent any output");
+                        nwStream.Write(outputbuf, 0, outputbuf.Length);
+                    }
 
                 } while (true);
 
