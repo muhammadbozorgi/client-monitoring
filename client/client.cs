@@ -43,7 +43,7 @@ public class SocketClient
             }
             catch (Exception ex)
             {
-                Console.WriteLine("An error occured in get data and sent to database: " + ex.GetType().ToString());
+                Console.WriteLine("An error occured : " + ex.GetType().ToString());
 
             }
         }
