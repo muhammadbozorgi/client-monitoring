@@ -86,12 +86,19 @@ namespace client
                                 StartInfo = new ProcessStartInfo
                                 {
                                     FileName = "/bin/bash",
-                                    Arguments = "-c \" " + "grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage}'"+"\"",
                                     UseShellExecute = false,
                                     RedirectStandardOutput = true,
                                     CreateNoWindow = true
                                 }
                             };
+                            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                            {
+                                proc.StartInfo.Arguments = "-c \" ps -A -o %cpu | awk '{s+=$1} END {print s}'\"";
+                            }
+                            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                            {
+                                proc.StartInfo.Arguments = "-c \" " + "grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage}'" + "\"";
+                            }
                             proc.Start();
                             string output = proc.StandardOutput.ReadToEnd();
                             cputotal = (int)Convert.ToDouble(output);
@@ -101,12 +108,19 @@ namespace client
                                 StartInfo = new ProcessStartInfo
                                 {
                                     FileName = "/bin/bash",
-                                    Arguments = "-c \" " + "free | awk 'FNR == 3 {print$4/1024}'"+"\"",
                                     UseShellExecute = false,
                                     RedirectStandardOutput = true,
                                     CreateNoWindow = true
                                 }
                             };
+                            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                            {
+                                proc1.StartInfo.Arguments = "top -l1 | awk '/PhysMem/ {print int($6)'";
+                            }
+                            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                            {
+                                proc1.StartInfo.Arguments = "-c \" " + "free | awk 'FNR == 3 {print$4/1024}'" + "\"";
+                            }
                             proc1.Start();
                             string output1 = proc1.StandardOutput.ReadToEnd();
                             ramtotal = (int)Convert.ToDouble(output1);
