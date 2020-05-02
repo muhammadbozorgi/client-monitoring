@@ -24,20 +24,15 @@ public class SocketClient
                 PingReply PR = p1.Send(databaseip);
                 Console.WriteLine("please enter ip that you want get menager command :");
                 serverip = Console.ReadLine();
-                Ping p2 = new Ping();
-                PingReply PR1 = p1.Send(serverip);
                 // check when the ping is not success
                 if (PR.Status.ToString().Equals("Success"))
                 {
-                    Console.WriteLine("ping database is true");
-                    if ((PR.Status.ToString().Equals("Success")))
-                    {
-                        Console.WriteLine("ping server is true");
-                        Console.WriteLine("please enter server port:");
-                        result = Console.ReadLine();
-                        port = Int32.Parse(result);
-                        break;
-                    }
+                    Console.WriteLine("ping database ip is true");
+                    Console.WriteLine("please enter server port:");
+                    result = Console.ReadLine();
+                    port = Int32.Parse(result);
+                    break;
+
                 }
                 Console.WriteLine("cant see database ip try again");
             }
