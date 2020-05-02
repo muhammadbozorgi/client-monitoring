@@ -115,7 +115,7 @@ namespace client
                             };
                             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                             {
-                                proc1.StartInfo.Arguments = "-c \" top -l1 | awk '/PhysMem/ {print int($6)'\"";
+                                proc1.StartInfo.Arguments = "-c \" top -l1 | awk '/PhysMem/ {print int($6)}'\"";
                             }
                             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                             {
