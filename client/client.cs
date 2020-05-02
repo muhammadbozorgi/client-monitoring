@@ -12,6 +12,7 @@ public class SocketClient
         string serverip;
         string result;
         int port;
+        string pass;
         while (true)
         {
             try
@@ -28,9 +29,12 @@ public class SocketClient
                 if (PR.Status.ToString().Equals("Success"))
                 {
                     Console.WriteLine("ping database ip is true");
-                    Console.WriteLine("please enter server port:");
-                    result = Console.ReadLine();
-                    port = Int32.Parse(result);
+                   // Console.WriteLine("please enter server port:");
+                    //result = Console.ReadLine();
+                    port = Int32.Parse("5000");
+                    Console.WriteLine("please enter pass");
+                    pass = Console.ReadLine();
+                    Console.Clear();
                     break;
 
                 }
@@ -51,11 +55,11 @@ public class SocketClient
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    ProcessAsyncStreamSamples.SortOutputRedirection1.SortInputListText(serverip, port);
+                    ProcessAsyncStreamSamples.SortOutputRedirection1.SortInputListText(serverip, port, pass);
                 }
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
-                    ProcessAsyncStreamSamples.SortOutputRedirection.SortInputListText(serverip, port);
+                    ProcessAsyncStreamSamples.SortOutputRedirection.SortInputListText(serverip, port,pass);
                 }
             }
             catch (Exception ex)

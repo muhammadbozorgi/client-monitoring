@@ -46,86 +46,9 @@ namespace client
                             totalSNET[i] = -(float)(ni.GetIPv4Statistics().BytesSent) / (1024 * 1024);
                             i++;
                         }
-                        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                        {
-                            var proc = new Process
-                            {
-                                StartInfo = new ProcessStartInfo
-                                {
-                                    FileName = "powershell.exe",
-                                    Arguments = "(Get-CimInstance -Class Win32_Processor).LoadPercentage",
-                                    UseShellExecute = false,
-                                    RedirectStandardOutput = true,
-                                    CreateNoWindow = true
-                                }
-                            };
-                            proc.Start();
-                            string output = proc.StandardOutput.ReadToEnd();
-                            cputotal =(int) Convert.ToDouble(output);
-                            proc.Close();
-                            var proc1 = new Process
-                            {
-                                StartInfo = new ProcessStartInfo
-                                {
-                                    FileName = "powershell.exe",
-                                    Arguments = "Get-CIMInstance Win32_OperatingSystem | Select FreePhysicalMemory|%{$_.FreePhysicalMemory/1024}",
-                                    UseShellExecute = false,
-                                    RedirectStandardOutput = true,
-                                    CreateNoWindow = true
-                                }
-                            };
-                            proc1.Start();
-                            string output1 = proc1.StandardOutput.ReadToEnd();
-                            ramtotal = (int)Convert.ToDouble(output1);
-                            proc1.Close();
-                        }
-                        else
-                        {
-                            var proc = new Process
-                            {
-                                StartInfo = new ProcessStartInfo
-                                {
-                                    FileName = "/bin/bash",
-                                    UseShellExecute = false,
-                                    RedirectStandardOutput = true,
-                                    CreateNoWindow = true
-                                }
-                            };
-                            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                            {
-                                proc.StartInfo.Arguments = "-c \" ps -A -o %cpu | awk '{s+=$1} END {print s}'\"";
-                            }
-                            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                            {
-                                proc.StartInfo.Arguments = "-c \" " + "grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage}'" + "\"";
-                            }
-                            proc.Start();
-                            string output = proc.StandardOutput.ReadToEnd();
-                            cputotal = (int)Convert.ToDouble(output);
-                            proc.Close();
-                            var proc1 = new Process
-                            {
-                                StartInfo = new ProcessStartInfo
-                                {
-                                    FileName = "/bin/bash",
-                                    UseShellExecute = false,
-                                    RedirectStandardOutput = true,
-                                    CreateNoWindow = true
-                                }
-                            };
-                            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                            {
-                                proc1.StartInfo.Arguments = "-c \" top -l1 | awk '/PhysMem/ {print int($6)}'\"";
-                            }
-                            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                            {
-                                proc1.StartInfo.Arguments = "-c \" " + "free | awk 'FNR == 3 {print$4/1024}'" + "\"";
-                            }
-                            proc1.Start();
-                            string output1 = proc1.StandardOutput.ReadToEnd();
-                            ramtotal = (int)Convert.ToDouble(output1);
-                            proc1.Close();
-                        }
+                        cputotal = ramcpu.cpu();
+                        ramtotal = ramcpu.ram();
+                        Thread.Sleep(30000);
                         //NETWORK USAGE AGAIN FOR CALCULATE PER MIN
                         foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
                         {
@@ -149,7 +72,7 @@ namespace client
                                 doc.Add(new BsonElement("Interface" + b, ni.Description));
                                 doc.Add(new BsonElement("MBytes Sent for Interface " + b, totalSNET[b]));
                                 doc.Add(new BsonElement("MBytes Rec for Interface" + b, totalRNET[b]));
-                                if (totalRNET[b] > 3 || totalSNET[b] > 3)
+                                if (totalRNET[b] > 1 || totalSNET[b] > 1)
                                 {
                                     error = true;
                                 }
@@ -174,7 +97,7 @@ namespace client
                         doc.Add(new BsonElement("total cpu usage: ", cputotal));
                         doc.Add(new BsonElement("total free ram(MB): ", ramtotal));
                         /////////////////////////////////////////////CHECK MY CONDITION FOR SEND DATA TO DATABASE OR NOT
-                        if (error || cputotal > 20 || ramtotal < 2000)
+                        if (error || cputotal > 60 || ramtotal < 1000)
                         {
                             //connect to mongo
                             var dbClient = new MongoClient("mongodb://" + ip + ":" + port);
@@ -188,7 +111,7 @@ namespace client
                         }
                         else
                         {
-                            Console.WriteLine("good");
+                            Console.WriteLine("send to database",doc);
                         }
                     }
                 }

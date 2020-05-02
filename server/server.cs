@@ -24,7 +24,28 @@ public class SocketListener
                     //---create a TCPClient object at the IP and port no.---
                     TcpClient client = new TcpClient(SERVER_IP, PORT_NO);
                     NetworkStream nwStream = client.GetStream();
+                    Console.WriteLine("enter pass: ");
+                    string textToSend1 = Console.ReadLine();
+                    if (string.IsNullOrEmpty(textToSend1))
+                    {
+                        textToSend1 = " ";
+                    }
+                    byte[] bytesToSend1 = ASCIIEncoding.ASCII.GetBytes(textToSend1);
+                    //---send the text---
+                    Console.WriteLine("Sending : " + textToSend1);
+                    nwStream.Write(bytesToSend1, 0, bytesToSend1.Length);
                     //---write back the text to the client---
+                    byte[] buffer1 = new byte[client.ReceiveBufferSize];
+                    //---read incoming stream---
+                    int bytesRead1 = nwStream.Read(buffer1, 0, client.ReceiveBufferSize);
+                    //---convert the data received into a string---
+                    dataReceived = Encoding.ASCII.GetString(buffer1, 0, bytesRead1);
+                    Console.WriteLine("Received : " + dataReceived);
+                    if (dataReceived == "ur pass  incorrect")
+                    {
+                        client.Close();
+                        break;
+                    }
                     while (true)
                     {
                         //---write back the text to the client---
