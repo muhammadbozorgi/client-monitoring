@@ -73,7 +73,7 @@ public class SocketListener
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.GetType().ToString());
+                    Console.WriteLine(e.GetType().ToString()+e);
                     break;
                 }
             }
