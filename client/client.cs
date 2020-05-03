@@ -33,8 +33,9 @@ public class SocketClient
                     //result = Console.ReadLine();
                     port = Int32.Parse("5000");
                     Console.WriteLine("please enter pass");
+                    Console.ForegroundColor = ConsoleColor.Black;
                     pass = Console.ReadLine();
-                    Console.Clear();
+                    Console.ForegroundColor = ConsoleColor.White;
                     break;
 
                 }
@@ -55,11 +56,11 @@ public class SocketClient
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    ProcessAsyncStreamSamples.Terminal.Createprocess(serverip, port, pass);
+                    ProcessAsyncStreamSamples.Powershell.CreatePowershellprocess(serverip, port, pass);
                 }
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
-                    ProcessAsyncStreamSamples.Powershell.Createprocess(serverip, port,pass);
+                    ProcessAsyncStreamSamples.Terminal.CreateTerminalprocess(serverip, port,pass);
                 }
             }
             catch (Exception ex)

@@ -23,7 +23,9 @@ public class SocketListener
                     TcpClient client = new TcpClient(SERVER_IP, PORT_NO);
                     NetworkStream nwStream = client.GetStream();
                     Console.WriteLine("enter pass: ");
+                    Console.ForegroundColor = ConsoleColor.Black;
                     string textToSend1 = Console.ReadLine();
+                    Console.ForegroundColor = ConsoleColor.White;
                     if (string.IsNullOrEmpty(textToSend1))
                     {
                         textToSend1 = " ";

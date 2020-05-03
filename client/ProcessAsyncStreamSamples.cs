@@ -15,7 +15,7 @@ namespace ProcessAsyncStreamSamples
         private static StringBuilder sendOutput = null;
         private static StringBuilder senderrOutput1 = null;
 
-        public static void Createprocess(string SERVER_IP, int port, string pass)
+        public static void CreateTerminalprocess(string SERVER_IP, int port, string pass)
         {
             //---listen at the specified IP and port no.---
             IPAddress localAdd = IPAddress.Parse(SERVER_IP);
