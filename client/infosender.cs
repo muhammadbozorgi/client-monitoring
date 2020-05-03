@@ -89,12 +89,16 @@ namespace client
                         {
                             try
                             {
-                                doc.Add(new BsonElement(drive.Name + "free space(GB): ", (drive.TotalFreeSpace) / 1e9));
-
-                                if (((drive.TotalFreeSpace) / 1e9) < 1)
+                                if(drive.TotalFreeSpace !=0)
                                 {
-                                    error = true;
+                                    doc.Add(new BsonElement(drive.Name + "free space(GB): ", (drive.TotalFreeSpace) / 1e9));
+
+                                    if (((drive.TotalFreeSpace) / 1e9) < 1)
+                                    {
+                                        error = true;
+                                    }
                                 }
+
                             }
                             catch { }
                         }
