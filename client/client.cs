@@ -55,11 +55,11 @@ public class SocketClient
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    ProcessAsyncStreamSamples.SortOutputRedirection1.SortInputListText(serverip, port, pass);
+                    ProcessAsyncStreamSamples.Terminal.Createprocess(serverip, port, pass);
                 }
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
-                    ProcessAsyncStreamSamples.SortOutputRedirection.SortInputListText(serverip, port,pass);
+                    ProcessAsyncStreamSamples.Powershell.Createprocess(serverip, port,pass);
                 }
             }
             catch (Exception ex)

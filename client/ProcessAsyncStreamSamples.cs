@@ -9,13 +9,13 @@ using System.Runtime.InteropServices;
 
 namespace ProcessAsyncStreamSamples
 {
-    class SortOutputRedirection
+    class Terminal
     {
         // Define static variables shared by class methods.
-        private static StringBuilder sortOutput = null;
-        private static StringBuilder sortOutput1 = null;
+        private static StringBuilder sendOutput = null;
+        private static StringBuilder senderrOutput1 = null;
 
-        public static void SortInputListText(string SERVER_IP, int port, string pass)
+        public static void Createprocess(string SERVER_IP, int port, string pass)
         {
             //---listen at the specified IP and port no.---
             IPAddress localAdd = IPAddress.Parse(SERVER_IP);
@@ -39,22 +39,21 @@ namespace ProcessAsyncStreamSamples
             }
             byte[] outputbuf3 = ASCIIEncoding.ASCII.GetBytes("password correct");
             nwStream.Write(outputbuf3, 0, outputbuf3.Length);
-            Process sortProcess = new Process();
-            sortProcess.StartInfo.FileName = "/bin/bash";
-            sortProcess.StartInfo.UseShellExecute = false;
-            sortProcess.StartInfo.RedirectStandardOutput = true;
-            sortProcess.StartInfo.RedirectStandardError = true;
-            sortOutput = new StringBuilder();
-            sortOutput1 = new StringBuilder();
-            sortProcess.OutputDataReceived += SortOutputHandler;
-            sortProcess.ErrorDataReceived += SortOutputHandler1;
-            sortProcess.StartInfo.RedirectStandardInput = true;
-            sortProcess.Start();
+            Process Terminalprocess = new Process();
+            Terminalprocess.StartInfo.FileName = "/bin/bash";
+            Terminalprocess.StartInfo.UseShellExecute = false;
+            Terminalprocess.StartInfo.RedirectStandardOutput = true;
+            Terminalprocess.StartInfo.RedirectStandardError = true;
+            sendOutput = new StringBuilder();
+            senderrOutput1 = new StringBuilder();
+            Terminalprocess.OutputDataReceived += SendOutputHandler;
+            Terminalprocess.ErrorDataReceived += SenderrOutputHandler1;
+            Terminalprocess.StartInfo.RedirectStandardInput = true;
+            Terminalprocess.Start();
 
-            var sortprocessid = sortProcess.Id;
-            StreamWriter sortStreamWriter = sortProcess.StandardInput;
-            sortProcess.BeginOutputReadLine();
-            sortProcess.BeginErrorReadLine();
+            StreamWriter StreamWriter = Terminalprocess.StandardInput;
+            Terminalprocess.BeginOutputReadLine();
+            Terminalprocess.BeginErrorReadLine();
             String inputText;
             try
             {
@@ -68,44 +67,44 @@ namespace ProcessAsyncStreamSamples
                     {
                         byte[] outputbuf2 = ASCIIEncoding.ASCII.GetBytes("good bye");
                         nwStream.Write(outputbuf2, 0, outputbuf2.Length);
-                        sortStreamWriter.Close();
-                        sortProcess.Kill();
-                        sortProcess.Close();
+                        StreamWriter.Close();
+                        Terminalprocess.Kill();
+                        Terminalprocess.Close();
                         client.Close();
                         listener.Stop();
                         break;
                     }
-                    sortOutput.Clear();
-                    sortOutput1.Clear();
+                    sendOutput.Clear();
+                    senderrOutput1.Clear();
                     try
                     {
-                        sortStreamWriter.WriteLine(inputText);
+                        StreamWriter.WriteLine(inputText);
 
                     }
                     catch
                     {
                         byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes("good bye");
                         nwStream.Write(outputbuf, 0, outputbuf.Length);
-                        sortStreamWriter.Close();
-                        sortProcess.Kill();
-                        sortProcess.Close();
+                        StreamWriter.Close();
+                        Terminalprocess.Kill();
+                        Terminalprocess.Close();
                         client.Close();
                         listener.Stop();
                         break;
                     }
                     Thread.Sleep(1500);
-                    if (!String.IsNullOrEmpty(sortOutput.ToString()))
+                    if (!String.IsNullOrEmpty(sendOutput.ToString()))
                     {
-                        byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes(sortOutput.ToString());
+                        byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes(sendOutput.ToString());
                         nwStream.Write(outputbuf, 0, outputbuf.Length);
                     }
-                    if (!String.IsNullOrEmpty(sortOutput1.ToString()))
+                    if (!String.IsNullOrEmpty(senderrOutput1.ToString()))
                     {
                         Thread.Sleep(1500);
-                        byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes(sortOutput1.ToString());
+                        byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes(senderrOutput1.ToString());
                         nwStream.Write(outputbuf, 0, outputbuf.Length);
                     }
-                    if (String.IsNullOrEmpty(sortOutput.ToString()) && String.IsNullOrEmpty(sortOutput1.ToString()))
+                    if (String.IsNullOrEmpty(sendOutput.ToString()) && String.IsNullOrEmpty(senderrOutput1.ToString()))
                     {
                         byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes("ur command havent any output");
                         nwStream.Write(outputbuf, 0, outputbuf.Length);
@@ -115,31 +114,29 @@ namespace ProcessAsyncStreamSamples
             }
             catch
             {
-                sortStreamWriter.Close();
-                sortProcess.WaitForExit();
-                sortProcess.Close();
+                StreamWriter.Close();
+                Terminalprocess.WaitForExit();
+                Terminalprocess.Close();
                 client.Close();
                 listener.Stop();
             }
 
         }
-        private static void SortOutputHandler(object sendingProcess,
+        private static void SendOutputHandler(object sendingProcess,
             DataReceivedEventArgs outLine)
         {
-            // Collect the sort command output.
             if (!String.IsNullOrEmpty(outLine.Data))
             {
-                sortOutput.Append(Environment.NewLine +
+                sendOutput.Append(Environment.NewLine +
                     $" {outLine.Data}");
             }
         }
-        private static void SortOutputHandler1(object sendingProcess,
+        private static void SenderrOutputHandler1(object sendingProcess,
     DataReceivedEventArgs outLine)
         {
-            // Collect the sort command output.
             if (!String.IsNullOrEmpty(outLine.Data))
             {
-                sortOutput1.Append(Environment.NewLine +
+                senderrOutput1.Append(Environment.NewLine +
                     $" {outLine.Data}");
             }
         }

