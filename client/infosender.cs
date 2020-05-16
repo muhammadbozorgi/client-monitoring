@@ -1,10 +1,13 @@
 ﻿using MongoDB.Bson;
+using MongoDB.Bson.IO;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
+using System.Net.Mail;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -14,121 +17,117 @@ namespace client
 {
     class infosender
     {
-        public static void clientinfosender(string ip, string port)
+        public static string Clientinfosender(string mac, string ip, string port)
         {
-            while (true)
+            float[] driveinfo = new float[100];
+            int cputotal = 0;
+            float ramtotal = 0;
+            float[] totalRNET = new float[100];
+            float[] totalSNET = new float[100];
+            bool error = false;
+            BsonDocument doc = new BsonDocument();
+            doc.Clear();
+            int i = 0;
+            int b = 0;
+            //NETWORK USAGE
+            foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces().Where(nic => nic.OperationalStatus == OperationalStatus.Up))
             {
-
-                try
+                totalRNET[i] = -(float)(ni.GetIPv4Statistics().BytesReceived) / (1024 * 1024);
+                totalSNET[i] = -(float)(ni.GetIPv4Statistics().BytesSent) / (1024 * 1024);
+                i++;
+            }
+            for (int c = 1; c != 0; c--)
+            {
+                cputotal += cpu();
+                ramtotal += ram();
+                Thread.Sleep(3000);
+            }
+            cputotal = cputotal / 6;
+            ramtotal = ramtotal / 6;
+            //NETWORK USAGE AGAIN FOR CALCULATE PER MIN
+            foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces().Where(nic => nic.OperationalStatus == OperationalStatus.Up))
+            {
+                totalRNET[b] += (float)(ni.GetIPv4Statistics().BytesReceived) / (1024 * 1024);
+                totalSNET[b] += (float)(ni.GetIPv4Statistics().BytesSent) / (1024 * 1024);
+                if (totalRNET[b] != 0 || totalSNET[b] != 0)
                 {
-                    string firstipAddress = "cant find ip";
-                    string macadd = "cant find mac";
-                    bool error;
-                    float[] driveinfo = new float[100];
-                    int cputotal;
-                    float ramtotal;
-                    while (true)
+                    doc.Add(new BsonElement("Interface" + b, ni.Description));
+                    doc.Add(new BsonElement("MBytes Sent for Interface " + b, totalSNET[b]));
+                    doc.Add(new BsonElement("MBytes Rec for Interface" + b, totalRNET[b]));
+                    if (totalRNET[b] > 100 || totalSNET[b] > 100)
                     {
-                        float[] totalRNET = new float[100];
-                        float[] totalSNET = new float[100];
-                        cputotal = 0;
-                        ramtotal = 0;
-                        error = false;
-                        BsonDocument doc = new BsonDocument();
-                        doc.Clear();
-                        int i = 0;
-                        int b = 0;
-                        //NETWORK USAGE
-                        foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
-                        {
-                            totalRNET[i] = -(float)(ni.GetIPv4Statistics().BytesReceived) / (1024 * 1024);
-                            totalSNET[i] = -(float)(ni.GetIPv4Statistics().BytesSent) / (1024 * 1024);
-                            i++;
-                        }
-                        for(int c =6; c!=0;c-- )
-                        {
-                            cputotal += cpu();
-                            ramtotal += ram();
-                            Thread.Sleep(10000);
-                        }
-                        cputotal = cputotal/6;
-                        ramtotal = ramtotal/6;
-                        //NETWORK USAGE AGAIN FOR CALCULATE PER MIN
-                        foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
-                        {
-                            totalRNET[b] += (float)(ni.GetIPv4Statistics().BytesReceived) / (1024 * 1024);
-                            totalSNET[b] += (float)(ni.GetIPv4Statistics().BytesSent) / (1024 * 1024);
-                            if (totalRNET[b] != 0 || totalSNET[b] != 0 && ni.OperationalStatus == OperationalStatus.Up)
-                            {
-                                if (ni.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 || ni.NetworkInterfaceType == NetworkInterfaceType.Ethernet &&
-                                    ni.NetworkInterfaceType != NetworkInterfaceType.Loopback && ni.NetworkInterfaceType != NetworkInterfaceType.Tunnel
-                                    && ni.Name.StartsWith("vEthernet") == false && ni.Description.Contains("Hyper-v") == false)
-                                {
-                                    foreach (UnicastIPAddressInformation ip1 in ni.GetIPProperties().UnicastAddresses)
-                                    {
-                                        if (ip1.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                                        {
-                                            firstipAddress = ip1.Address.ToString();
-                                            macadd = ni.GetPhysicalAddress().ToString();
-                                        }
-                                    }
-                                }
-                                doc.Add(new BsonElement("Interface" + b, ni.Description));
-                                doc.Add(new BsonElement("MBytes Sent for Interface " + b, totalSNET[b]));
-                                doc.Add(new BsonElement("MBytes Rec for Interface" + b, totalRNET[b]));
-                                if (totalRNET[b] > 1 || totalSNET[b] > 1)
-                                {
-                                    error = true;
-                                }
-                            }
-                            b++;
-                        }
-                        doc.Add(new BsonElement("MAC", macadd));
-                        //GET DRIVETINFO
-                        foreach (DriveInfo drive in DriveInfo.GetDrives())
-                        {
-                            try
-                            {
-                                if(drive.TotalFreeSpace !=0 )
-                                {
-                                    doc.Add(new BsonElement(drive.Name + "free space(GB): ", (drive.TotalFreeSpace) / 1e9));
-
-                                    if (((drive.TotalFreeSpace) / 1e6) < 100)
-                                    {
-                                        error = true;
-                                    }
-                                }
-
-                            }
-                            catch { }
-                        }
-                        doc.Add(new BsonElement("total cpu usage: ", cputotal));
-                        doc.Add(new BsonElement("total free ram(MB): ", ramtotal));
-                        /////////////////////////////////////////////CHECK MY CONDITION FOR SEND DATA TO DATABASE OR NOT
-                        if (error || cputotal > 60 || ramtotal < 1000)
-                        {
-                            //connect to mongo
-                            var dbClient = new MongoClient("mongodb://" + ip + ":" + port);
-                            ////create collection
-                            IMongoDatabase university = dbClient.GetDatabase("university");
-                            ////creat Mac object
-                            var IP = university.GetCollection<BsonDocument>(firstipAddress);
-                            //create bson
-                            IP.InsertOne(doc);
-                            Console.WriteLine("send data");
-                        }
-                        else
-                        {
-                            Console.WriteLine("system is stable");
-                        }
+                        error = true;
                     }
                 }
-                catch (Exception ex)
+                b++;
+            }
+            //GET DRIVETINFO
+            foreach (DriveInfo drive in DriveInfo.GetDrives())
+            {
+                try
                 {
-                    Console.WriteLine("An error occured in get data and sent to database:1 " + ex.GetType().ToString() );
+                    if (drive.TotalFreeSpace != 0)
+                    {
+                        doc.Add(new BsonElement(drive.Name + "free space(GB): ", (drive.TotalFreeSpace) / 1e9));
+                    }
 
                 }
+                catch { }
             }
+            doc.Add(new BsonElement("total cpu usage: ", cputotal));
+            doc.Add(new BsonElement("total free ram(MB): ", ramtotal));
+            /////////////////////////////////////////////CHECK MY CONDITION FOR SEND DATA TO DATABASE OR NOT
+            if (cputotal > 1 || ramtotal < 1000 || error)
+            {
+                //connect to mongo
+                var dbClient = new MongoClient("mongodb://client:client99@" + ip + ":" + port + "/admin");
+                ////create collection
+                IMongoDatabase monitoringdatabase = dbClient.GetDatabase("monitoring");
+                ////creat Mac object
+                var monitoringcollection = monitoringdatabase.GetCollection<BsonDocument>(mac);
+                //create bson
+                monitoringcollection.InsertOne(doc);
+                Console.WriteLine("send data");
+                //nfosender.CreateTestMessage2(mac, doc);
+                ////create collection
+                IMongoDatabase commandsdatabase = dbClient.GetDatabase("commands");
+                ////creat Mac object
+                var commadscollection = commandsdatabase.GetCollection<BsonDocument>(mac);
+                var filter = Builders<BsonDocument>.Filter.Eq("name", "server");
+                var servercommand = commadscollection.Find(filter).FirstOrDefault();
+                try
+                {
+                    string servercommand1 = servercommand.ElementAt(2).Value.ToString();
+                    return servercommand1;
+                }
+                catch
+                {
+                    return null;
+
+                }
+
+            }
+            else
+            {
+                var dbClient = new MongoClient("mongodb://client:client99@" + ip + ":" + port + "/admin");
+                ////create collection
+                IMongoDatabase commandsdatabase = dbClient.GetDatabase("commands");
+                ////creat Mac object
+                var commadscollection = commandsdatabase.GetCollection<BsonDocument>(mac);
+                var filter = Builders<BsonDocument>.Filter.Eq("name", "server");
+                var servercommand = commadscollection.Find(filter).FirstOrDefault();
+                try
+                {
+                    string servercommand1= servercommand.ElementAt(2).Value.ToString();
+                    return servercommand1;
+
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
         }
         public static int cpu()
         {
@@ -226,5 +225,28 @@ namespace client
             }
             return ramtotal;
         }
+        public static void CreateTestMessage2(string header, BsonDocument matn)
+        {
+            try
+            {
+                MailMessage mail = new MailMessage();
+                SmtpClient SmtpServer = new SmtpClient("smtp.gmail.com");
+                mail.From = new MailAddress("muhammadbozorgi@gmail.com");
+                mail.To.Add("mohammadbozorgi0@gmail.com");
+                mail.Subject = header;
+                mail.Body = ("my mac: " + header + "," + matn.ToString()).Replace(",", Environment.NewLine);
+                SmtpServer.Port = 587;
+                SmtpServer.Credentials = new System.Net.NetworkCredential("muhammadbozorgi@gmail.com", "23676653");
+                SmtpServer.EnableSsl = true;
+                SmtpServer.Send(mail);
+                Console.WriteLine("mail Send");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+
+        }
     }
 }
+

