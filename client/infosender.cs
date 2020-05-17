@@ -2,15 +2,12 @@
 using MongoDB.Bson.IO;
 using MongoDB.Driver;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Mail;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 
 namespace client
@@ -36,14 +33,14 @@ namespace client
                 totalSNET[i] = -(float)(ni.GetIPv4Statistics().BytesSent) / (1024 * 1024);
                 i++;
             }
-            for (int c = 1; c != 0; c--)
+            for (int c = 3; c != 0; c--)
             {
                 cputotal += cpu();
                 ramtotal += ram();
-                Thread.Sleep(3000);
+                Thread.Sleep(10000);
             }
-            cputotal = cputotal / 6;
-            ramtotal = ramtotal / 6;
+            cputotal = cputotal / 3;
+            ramtotal = ramtotal / 3;
             //NETWORK USAGE AGAIN FOR CALCULATE PER MIN
             foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces().Where(nic => nic.OperationalStatus == OperationalStatus.Up))
             {
@@ -77,10 +74,10 @@ namespace client
             doc.Add(new BsonElement("total cpu usage: ", cputotal));
             doc.Add(new BsonElement("total free ram(MB): ", ramtotal));
             /////////////////////////////////////////////CHECK MY CONDITION FOR SEND DATA TO DATABASE OR NOT
-            if (cputotal > 1 || ramtotal < 1000 || error)
+            if (cputotal > 65 || ramtotal < 1000 || error)
             {
                 //connect to mongo
-                var dbClient = new MongoClient("mongodb://client:client99@" + ip + ":" + port + "/admin");
+                var dbClient = new MongoClient("mongodb://server:server99@" + ip + ":" + port + "/admin");
                 ////create collection
                 IMongoDatabase monitoringdatabase = dbClient.GetDatabase("monitoring");
                 ////creat Mac object
@@ -88,7 +85,7 @@ namespace client
                 //create bson
                 monitoringcollection.InsertOne(doc);
                 Console.WriteLine("send data");
-                //nfosender.CreateTestMessage2(mac, doc);
+                infosender.CreateTestMessage2(mac, doc);
                 ////create collection
                 IMongoDatabase commandsdatabase = dbClient.GetDatabase("commands");
                 ////creat Mac object
@@ -98,6 +95,8 @@ namespace client
                 try
                 {
                     string servercommand1 = servercommand.ElementAt(2).Value.ToString();
+                    var update = Builders<BsonDocument>.Update.Set("command", "");
+                    commadscollection.UpdateOne(filter, update);
                     return servercommand1;
                 }
                 catch
@@ -109,7 +108,8 @@ namespace client
             }
             else
             {
-                var dbClient = new MongoClient("mongodb://client:client99@" + ip + ":" + port + "/admin");
+                Console.WriteLine("system stable");
+                var dbClient = new MongoClient("mongodb://server:server99@" + ip + ":" + port + "/admin");
                 ////create collection
                 IMongoDatabase commandsdatabase = dbClient.GetDatabase("commands");
                 ////creat Mac object
@@ -119,11 +119,14 @@ namespace client
                 try
                 {
                     string servercommand1= servercommand.ElementAt(2).Value.ToString();
+                    var update = Builders<BsonDocument>.Update.Set("command", "");
+                    commadscollection.UpdateOne(filter, update);
                     return servercommand1;
 
                 }
                 catch
                 {
+
                     return null;
                 }
             }

