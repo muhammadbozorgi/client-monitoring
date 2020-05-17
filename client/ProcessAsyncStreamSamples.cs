@@ -37,7 +37,7 @@ namespace ProcessAsyncStreamSamples
                     Terminalprocess.BeginOutputReadLine();
                     Terminalprocess.BeginErrorReadLine();
                     BsonDocument doc = new BsonDocument();
-                    while(true)
+                    while (true)
                     {
                         Console.WriteLine(inputText);
                         doc.Add(new BsonElement("name", "client"));
@@ -78,7 +78,7 @@ namespace ProcessAsyncStreamSamples
                                     line = reader.ReadLine();
                                     if (line != null)
                                     {
-                                        doc.Add(new BsonElement("outputline: "+ i.ToString(), line));
+                                        doc.Add(new BsonElement("outputline: " + i.ToString(), line));
                                         i++;
                                     }
 
@@ -97,7 +97,7 @@ namespace ProcessAsyncStreamSamples
                                     line = reader.ReadLine();
                                     if (line != null)
                                     {
-                                        doc.Add(new BsonElement("erroroutputline: "+i.ToString(), line));
+                                        doc.Add(new BsonElement("erroroutputline: " + i.ToString(), line));
                                         i++;
                                     }
 
@@ -113,33 +113,24 @@ namespace ProcessAsyncStreamSamples
                         var respondscollection = respondsdatabase.GetCollection<BsonDocument>(mac);
                         respondsdatabase.DropCollection(mac);
                         respondscollection.InsertOne(doc);
+                        doc.Clear();
                         IMongoDatabase commandsdatabase = dbClient.GetDatabase("commands");
-                        ////creat Mac object
                         var commadscollection = commandsdatabase.GetCollection<BsonDocument>(mac);
                         var filter = Builders<BsonDocument>.Filter.Eq("name", "server");
                         var servercommand = commadscollection.Find(filter).FirstOrDefault();
-                        try
-                        {
-                            inputText = servercommand.ElementAt(2).Value.ToString();
-                            var update = Builders<BsonDocument>.Update.Set("command", "");
-                            commadscollection.UpdateOne(filter, update);
-                            if(inputText == "")
-                            {
-                                StreamWriter.Close();
-                                Terminalprocess.Kill();
-                                Terminalprocess.Close();
-                                inputText = null;
-                                break;
-                            }
-                        }
-                        catch
+                        inputText = servercommand.ElementAt(2).Value.ToString();
+                        Console.WriteLine(inputText);
+                        var update = Builders<BsonDocument>.Update.Set("command", "");
+                        commadscollection.UpdateOne(filter, update);
+                        if (inputText == "")
                         {
                             StreamWriter.Close();
                             Terminalprocess.Kill();
-                            Terminalprocess.Close(); 
+                            Terminalprocess.Close();
                             inputText = null;
                             break;
                         }
+
                     }
 
                 }

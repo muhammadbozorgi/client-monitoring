@@ -1,5 +1,4 @@
 ﻿using MongoDB.Bson;
-using MongoDB.Bson.IO;
 using MongoDB.Driver;
 using System;
 using System.Diagnostics;
@@ -92,19 +91,10 @@ namespace client
                 var commadscollection = commandsdatabase.GetCollection<BsonDocument>(mac);
                 var filter = Builders<BsonDocument>.Filter.Eq("name", "server");
                 var servercommand = commadscollection.Find(filter).FirstOrDefault();
-                try
-                {
-                    string servercommand1 = servercommand.ElementAt(2).Value.ToString();
-                    var update = Builders<BsonDocument>.Update.Set("command", "");
-                    commadscollection.UpdateOne(filter, update);
-                    return servercommand1;
-                }
-                catch
-                {
-                    return null;
-
-                }
-
+                string servercommand1 = servercommand.ElementAt(2).Value.ToString();
+                var update = Builders<BsonDocument>.Update.Set("command", "");
+                commadscollection.UpdateOne(filter, update);
+                return servercommand1;
             }
             else
             {
@@ -118,7 +108,7 @@ namespace client
                 var servercommand = commadscollection.Find(filter).FirstOrDefault();
                 try
                 {
-                    string servercommand1= servercommand.ElementAt(2).Value.ToString();
+                    string servercommand1 = servercommand.ElementAt(2).Value.ToString();
                     var update = Builders<BsonDocument>.Update.Set("command", "");
                     commadscollection.UpdateOne(filter, update);
                     return servercommand1;
