@@ -17,7 +17,7 @@ namespace client
                 string databaseip = "194.5.177.152";
                 string databaseport = "27017";
                 string myemail = "muhammadbozorgi@gmail.com";
-                string myemailpass = "23676653";
+                string myemailpass = "****";
                 string myadminemail = "mohammadbozorgi0@gmail.com";
                 string databseusername = "server";
                 string databasepass = "server99";
